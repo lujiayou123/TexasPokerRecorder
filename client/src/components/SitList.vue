@@ -172,6 +172,7 @@
     }
 
     private sitDown(sit: ISit) {
+      console.log('sit:', sit);
       if (!sit.player && (!this.isPlay || !this.hasSit)) {
         if (this.currPlayer.counter <= 0) {
           this.showBuyIn = true;

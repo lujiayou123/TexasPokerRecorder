@@ -5,8 +5,14 @@
         class="sit"
         v-for="(sit, key) in sitList"
         :key="key"
-        @click="sitDown(sit)"
+        @click="setHandCard(sit)"
       >
+      <!-- <div
+        class="sit"
+        v-for="(sit, key) in sitList"
+        :key="key"
+        @click="InputHandCard = true"
+      > -->
         <div class="default"
              v-show="!sit.player">
           <i>sit</i>
@@ -85,6 +91,8 @@
            :min="0"
            :max="gameConfig.smallBlind * 2000"
            @buyIn='buyIn'></BuyIn>
+    <InputHandCard :showHandCardInput.sync="showHandCardInput" :handCard="inputHandCard" ></InputHandCard>
+    <!-- @inputHandCard='inputHandCard' -->
   </div>
 </template>
 
@@ -95,6 +103,7 @@
   import ISit from '@/interface/ISit';
   import cardList from './CardList.vue';
   import BuyIn from '@/components/BuyIn.vue';
+  import InputHandCard from '@/components/InputHandCard.vue';
   import { PokerStyle } from '@/utils/PokerStyle';
   import map from '../utils/map';
   import {IGame} from '@/interface/IGame';
@@ -104,6 +113,7 @@
     components: {
       cardList,
       BuyIn,
+      InputHandCard,
     },
   })
   export default class SitList extends Vue {
@@ -122,6 +132,7 @@
 
     private sitLinkNode: any = '';
     private showBuyIn = false;
+    private showHandCardInput = false;
     private currSit!: ISit;
 
     @Watch('sitLink')
@@ -134,6 +145,14 @@
       this.currPlayer.counter += Number(size);
       this.$emit('buyIn', Number(size));
       this.sitDown(this.currSit);
+    }
+
+    private inputHandCard(handCard: string[]) {
+      console.log('HandCardParent:', handCard);
+      // this.showBuyIn = false;
+      // this.handCard = handCard;
+      // this.$emit('buyIn', Number(size));
+      // this.sitDown(this.currSit);
     }
 
     private showHandCard(sit: ISit) {
@@ -174,6 +193,8 @@
     }
 
     private sitDown(sit: ISit) {
+      console.log('sit:', sit);
+      // this.showBuyIn = true;
       if (!sit.player && (!this.isPlay || !this.hasSit)) {
         if (this.currPlayer.counter <= 0) {
           this.showBuyIn = true;
@@ -203,6 +224,16 @@
           }
         }
       }
+    }
+
+    private setHandCard(sit: ISit) {
+      if (sit.player) {
+        this.showHandCardInput = true;
+        // sit.player.handCard = [];
+        console.log('sit_info', sit);
+        console.log('handCard', this.handCard);
+      }
+
     }
 
     get sitList() {

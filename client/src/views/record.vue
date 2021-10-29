@@ -32,7 +32,7 @@
       <div class="btn play"
            v-show="!isPlay"><span @click="record">开始记录</span></div>
     </div>
-    <div class="game-record iconfont icon-record" @click="getRecord(0)"></div>
+    <!-- <div class="game-record iconfont icon-record" @click="getRecord(0)"></div> -->
     <actionDialog :base-size="baseSize"
                   :curr-player="currPlayer"
                   :is-action="isAction"
@@ -43,7 +43,7 @@
                   :prev-size="prevSize"
                   @action = 'action'
     ></actionDialog>
-    <div class="setting">
+    <!-- <div class="setting">
       <div class="iconfont icon-setting setting-btn"
            @click="showSetting = true"></div>
       <div class="setting-body"
@@ -52,7 +52,7 @@
         <i @click="standUp()">stand Up</i>
         <i @click="showCounterRecord">counter record</i>
       </div>
-    </div>
+    </div> -->
     <BuyIn :showBuyIn.sync='showBuyIn'
            :min='0'
            :max='baseSize * 2000'
@@ -340,167 +340,6 @@
       // this.isRaise = false;
     }
 
-    private socketInit() {
-      const token = cookie.get('token') || localStorage.getItem('token') || '';
-      const roomConfig = cookie.get('roomConfig') || localStorage.getItem('roomConfig') || '';
-      const log = console.log;
-      this.roomConfig = JSON.parse(roomConfig);
-      console.log(JSON.parse(roomConfig), 'roomConfig');
-      this.socket = io(`${origin.url}/socket`, {
-        // 实际使用中可以在这里传递参数
-        query: {
-          room: this.roomId,
-          token,
-          roomConfig,
-        },
-        transports: ['websocket'],
-      });
-      log('#init,', this.socket);
-      this.socket.on('connect', () => {
-        const id: string = this.socket.id;
-        log('#connect,', id, this.socket);
-
-        // 监听自身 id 以实现 p2p 通讯
-        this.socket.on(id, (msg: any) => {
-          log('#receive,', msg);
-          const data = msg.data;
-          if (data.action === 'handCard') {
-            console.log('come in handCard =========', data);
-            this.handCard = data.payload.handCard;
-            console.log('come in handCard =========', this.handCard);
-          }
-          if (data.action === 'userInfo') {
-            this.userInfo = data.payload.userInfo;
-          }
-          if (data.action === 'sitList') {
-            this.sitList = data.payload.sitList;
-            this.initSitLink();
-          }
-          if (data.action === 'gameInfo') {
-            const payload = data.payload;
-            this.players = payload.data.players;
-            this.pot = payload.data.pot || 0;
-            this.prevSize = payload.data.prevSize;
-            this.commonCard = payload.data.commonCard;
-            this.actionEndTime = payload.data.actionEndTime;
-            console.log('msg.data.currPlayer.userId', msg.data);
-            this.actionUserId = payload.data.currPlayer.userId;
-            // this.isAction = !!(this.userInfo
-            //   && this.userInfo.userId === payload.data.currPlayer.userId);
-          }
-
-          // room time out
-          if (data.action === 'deny') {
-            this.$plugin.toast('room is close');
-            setTimeout(() => {
-              this.$router.replace({ name: 'home' });
-            }, 1000);
-          }
-        });
-      });
-
-      // 接收在线用户信息
-      this.socket.on('online', (msg: IMsg) => {
-        log('#online,', msg);
-        if (msg.action === 'sitList') {
-          console.log(msg.data, 'sit');
-          this.sitList = msg.data.sitList;
-          this.initSitLink();
-        }
-        if (msg.action === 'join') {
-          this.joinMsg = msg.data;
-        }
-        if (msg.action === 'players') {
-          this.players = msg.data.players;
-        }
-        if (msg.action === 'actionComplete') {
-          this.commonCard = msg.data.commonCard;
-          this.slidePots = msg.data.slidePots;
-          this.actionEndTime = msg.data.actionEndTime || Date.now() + 30 * 1000;
-          console.log('players', msg.data);
-        }
-        if (msg.action === 'gameInfo') {
-          this.players = msg.data.players;
-          this.pot = msg.data.pot || 0;
-          this.roomConfig.smallBlind = msg.data.smallBlind;
-          this.prevSize = msg.data.prevSize;
-          this.actionUserId = msg.data.currPlayer.userId;
-          this.actionEndTime = msg.data.actionEndTime;
-          // this.isAction = !!(this.userInfo && this.userInfo.userId === msg.data.currPlayer.userId);
-          this.sitList = msg.data.sitList;
-          console.log('gameInfo', msg.data);
-          console.log('handCard', this.handCard);
-        }
-
-        if (msg.action === 'gameOver') {
-          console.log('gameOver', msg.data);
-          clearTimeout(this.timeSt);
-          this.actionUserId = '0';
-          this.winner = msg.data.winner;
-          this.commonCard = msg.data.commonCard;
-          const allPlayers = msg.data.allPlayers;
-          allPlayers.forEach((winner: IPlayer) => {
-            this.players.forEach((p) => {
-              if (winner.userId === p.userId) {
-                p.handCard = winner.handCard;
-                p.counter = winner.counter;
-                p.income = winner.income;
-              }
-            });
-          });
-          // income music
-          // this.playIncome = true;
-          // setTimeout(() => {
-          //   this.playIncome = false;
-          // }, 1000);
-        }
-
-        if (msg.action === 'newGame') {
-          this.init();
-        }
-
-        if (msg.action === 'pause') {
-          this.players = msg.data.players;
-          this.sitList = msg.data.sitList;
-          console.log('players', this.players);
-          this.gaming = false;
-          this.init();
-        }
-
-        if (msg.action === 'delayTime') {
-          this.actionEndTime = msg.data.actionEndTime;
-          const now = Date.now();
-          this.time = Math.floor((this.actionEndTime - now) / 1000);
-          // if (this.currPlayer?.userId !== this.actionUserId) {
-          //   this.time += 60;
-          // }
-        }
-
-        if (msg.action === 'broadcast') {
-          this.messageList.push({
-            message: msg.message.msg || '',
-            top: Math.random() * 50 + 10,
-          });
-        }
-      });
-
-      // 系统事件
-      this.socket.on('disconnect', (msg: IMsg) => {
-        this.$plugin.toast('room is disconnect');
-        // this.socketInit();
-        log('#disconnect', msg);
-      });
-
-      this.socket.on('disconnecting', () => {
-        this.$plugin.toast('room is disconnecting');
-        log('#disconnecting');
-      });
-
-      this.socket.on('error', () => {
-        this.$plugin.toast('room is error');
-        log('#error');
-      });
-    }
 
     private async buyIn(size: number) {
       if (size <= 0) {
@@ -555,12 +394,48 @@
       });
     }
 
+    private getRandomId(length: number): string {
+      const str = '0123456789abcdefghijklmnopqrstuvwxyz';
+      let randomId = '';
+      for (let i = 9; i > 0; --i) {
+        randomId += str[Math.floor(Math.random() * str.length)];
+      }
+      return randomId;
+    }
+
+    private positionDict(position: number): string {
+      const positionDict: { [key: number]: string; } = {
+        1: 'BTN', 2: 'SB', 3: 'BB', 4: 'UTG', 5: 'UTG+1',
+        6: 'MP', 7: 'LJ', 8: 'HJ', 9: 'CO',
+      };
+      return positionDict[position];
+    }
+
+    private blindDict(position: string): number {
+      const blindDict: { [key: string]: number; } = {
+        'BTN': 0, 'SB': 1, 'BB': 2, 'UTG': 0, 'UTG+1': 0, 'MP': 0, 'LJ': 0, 'HJ': 0, 'CO': 0,
+      };
+      return blindDict[position];
+    }
+
     private initSitLink() {
+      const sb = this.gameConfig.smallBlind;
+      const bb = 2 * sb;
       const sitListMap = this.sitList || [];
       if (sitListMap.length === 0) {
         for (let i = 0; i < 9; i++) {
           const sit = {
-            player: null,
+            player: {
+              counter: 1000 * bb,
+              nickName: this.getRandomId(8),
+              type: this.positionDict(i + 1),
+              actionSize: this.blindDict(this.positionDict(i + 1)),
+              actionCommand: '',
+              buyIn: 1000 * bb,
+              status: 1,
+              isSit: true,
+              delayCount: 999,
+            },
             position: i + 1,
           };
           sitListMap.push(sit);
@@ -608,14 +483,14 @@
       const gameConfig = cookie.get('gameConfig') || localStorage.getItem('gameConfig') || '';
       this.gameConfig = JSON.parse(gameConfig);
       console.log(this.gameConfig);
-      // try {
-      //   this.socketInit();
-      //   if (!this.sitLink) {
-      //     this.initSitLink();
-      //   }
-      // } catch (e) {
-      //   console.log(e);
-      // }
+      try {
+        // this.socketInit();
+        if (!this.sitLink) {
+          this.initSitLink();
+        }
+      } catch (e) {
+        console.log(e);
+      }
 
       // document.addEventListener('visibilitychange', () => {
       //   if (!document.hidden) {

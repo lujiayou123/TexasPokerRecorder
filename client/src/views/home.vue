@@ -110,7 +110,7 @@
     // 游戏设置
     private showGameconfig = false;
     // 人数
-    private playerNum = 6;
+    private playerNum = 9;
     private showRecord = false;
     private commandList = [];
     private currGameIndex = 0;
