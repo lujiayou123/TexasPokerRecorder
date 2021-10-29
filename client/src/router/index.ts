@@ -4,6 +4,8 @@ import Home from '../views/home.vue';
 import Login from '../views/login.vue';
 import Register from '../views/register.vue';
 import Game from '../views/game.vue';
+// 记录手牌
+import Record from '../views/record.vue';
 import service from '../service';
 import origin from '../utils/origin';
 
@@ -42,6 +44,16 @@ const routes: RouteConfig[] = [
     meta: {
       title: 'game',
       needLogin: true,
+    },
+  },
+  // 记录手牌
+  {
+    path: '/record',
+    name: 'record',
+    component: Record,
+    meta: {
+      title: 'record',
+      needLogin: false,
     },
   },
 ];

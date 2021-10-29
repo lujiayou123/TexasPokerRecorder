@@ -10,7 +10,7 @@ const request = async ({method = 'post' as Method, url = '', body = {}, timeout 
   const headers = {
     Authorization: `Bearer ${token}`,
   };
-  console.log('url', origin.url);
+  // console.log('url', origin.url);
   url = `${origin.url}/node${url}`;
   const option: AxiosRequestConfig = {
     url,

@@ -23,14 +23,41 @@
           <div class="btn"  @click="createRoom"><span>create</span></div>
         </div>
       </div>
+     <!-- record -->
+      <div class="room-config" v-show="showGameconfig">
+        <div class="room-config-shadow" @click="showGameconfig = false"></div>
+        <div class="room-config-body">
+          <h1> 手牌设置</h1>
+          <div class="input-bd">
+            <div class="input-name">小盲:</div>
+            <div class="input-text">
+              <input type="tel"
+                     v-model="smallBlind"/>
+            </div>
+          </div>
+          <div class="input-bd">
+            <div class="input-name">人数:</div>
+            <div class="input-text">
+              <input type="tel"
+                     v-model="playerNum"/>
+            </div>
+          </div>
+          <div class="btn"  @click="recordSingleHand"><span>记录一手牌</span></div>
+        </div>
+      </div>
+      <!-- 创建 -->
       <div class="create-room btn"
           @click="showRoomConfig = true" ><span>create room</span>
       </div>
+      <!-- 加入 -->
       <div class="btn"
            @click="joinRoom"><span>join room</span>
       </div>
-      <div class="btn"
+      <!-- <div class="btn"
            @click="getRecord(0)"><span>test record</span>
+      </div> -->
+      <div class="create-room btn"
+          @click="showGameconfig = true" ><span>记录一手牌</span>
       </div>
     </div>
     <div class="room-number"
@@ -80,11 +107,16 @@
     private isShort = false;
     private smallBlind = 1;
     private showRoomConfig = false;
+    // 游戏设置
+    private showGameconfig = false;
+    // 人数
+    private playerNum = 6;
     private showRecord = false;
     private commandList = [];
     private currGameIndex = 0;
     private gameList: IGameRecord [] = [];
 
+    // 创建房间
     private async createRoom() {
       try {
         const result = await service.createRoom(this.isShort, this.smallBlind, 0);
@@ -101,6 +133,7 @@
       }
     }
 
+    // 加入房间号
     private joinRoom() {
       this.isJoin = true;
       this.showBtn = false;
@@ -130,10 +163,10 @@
 
     private async getRecord(index: number) {
       try {
-        console.log('ccc');
+        console.log('getRecord');
         let gameId = 0;
         if (!index) {
-          const result = await service.gameRecordList('889008');
+          const result = await service.gameRecordList('648002');
           this.gameList = Object.values(result.data);
           gameId = this.gameList[this.gameList.length - 1].gameId;
           this.currGameIndex = this.gameList.length;
@@ -143,7 +176,7 @@
         }
         console.log(gameId, 'ccc11');
         gameId = this.gameList[index].gameId;
-        const { data } = await service.commandRecordList('889008', gameId);
+        const { data } = await service.commandRecordList('648002', gameId);
         this.commandList = data.commandList;
         this.showRecord = true;
         console.log(data);
@@ -151,6 +184,17 @@
         console.log(e);
         this.$plugin.toast('can\'t find the room');
       }
+    }
+
+    private recordSingleHand() {
+      console.log('记录一手牌');
+      const gameConfig = {
+          smallBlind: this.smallBlind,
+          playerNum: this.playerNum,
+        };
+      localStorage.setItem('gameConfig', JSON.stringify(gameConfig));
+      cookie.set('gameConfig', gameConfig, {expires: 1});
+      this.$router.push({ name: 'record'});
     }
   }
 </script>

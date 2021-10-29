@@ -18,7 +18,7 @@
         </div>
         <div class="login-btn btn">
           <span @click="login">sign in</span>
-          <b @click="signUp">sign up</b>
+          <!-- <b @click="signUp">sign up</b> -->
         </div>
       </div>
     </div>

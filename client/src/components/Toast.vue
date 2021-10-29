@@ -19,7 +19,7 @@
     private Time: any;
 
     get showValue() {
-      console.log('come in1111', this.show);
+      // console.log('come in1111', this.show);
       if (this.show) {
         this.close();
       }
@@ -31,7 +31,7 @@
     }
 
     private close() {
-      console.log('come in');
+      // console.log('come in');
       clearTimeout(this.Time);
       this.Time = setTimeout(() => {
         this.showValue = false;
