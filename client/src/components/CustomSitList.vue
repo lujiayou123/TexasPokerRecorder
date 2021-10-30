@@ -90,9 +90,13 @@
     <BuyIn :showBuyIn.sync="showBuyIn"
            :min="0"
            :max="gameConfig.smallBlind * 2000"
-           @buyIn='buyIn'></BuyIn>
-    <InputHandCard :showHandCardInput.sync="showHandCardInput" :handCard="inputHandCard" ></InputHandCard>
-    <!-- @inputHandCard='inputHandCard' -->
+           @buyIn='buyIn'>
+    </BuyIn>
+    <InputHandCard
+      :showInputHandCard.sync="showInputHandCard"
+      @child-event="inputHandCard" >
+    </InputHandCard>
+    <!-- :handCard.sync="handCard" -->
   </div>
 </template>
 
@@ -132,8 +136,9 @@
 
     private sitLinkNode: any = '';
     private showBuyIn = false;
-    private showHandCardInput = false;
+    private showInputHandCard = false;
     private currSit!: ISit;
+    private handCards!: string[];
 
     @Watch('sitLink')
     private getSit(val: ILinkNode<ISit>) {
@@ -146,13 +151,16 @@
       this.$emit('buyIn', Number(size));
       this.sitDown(this.currSit);
     }
-
+    // 参数handCard，就是this.$emit('child-event', this.handCard);中传递的this.handCard
     private inputHandCard(handCard: string[]) {
-      console.log('HandCardParent:', handCard);
-      // this.showBuyIn = false;
-      // this.handCard = handCard;
-      // this.$emit('buyIn', Number(size));
-      // this.sitDown(this.currSit);
+      console.log('获取到子组件传来的handCards', handCard);
+      this.showInputHandCard = false;
+      this.handCards = handCard;
+      console.log('cursit:', this.currSit);
+      if (this.currSit.player) {
+        this.currSit.player.handCard = handCard;
+      }
+      this.setHandCard(this.currSit);
     }
 
     private showHandCard(sit: ISit) {
@@ -227,13 +235,16 @@
     }
 
     private setHandCard(sit: ISit) {
-      if (sit.player) {
-        this.showHandCardInput = true;
-        // sit.player.handCard = [];
-        console.log('sit_info', sit);
-        console.log('handCard', this.handCard);
-      }
-
+      console.log('setHandCard');
+      console.log('sit_info:', sit);
+      this.showInputHandCard = true;
+      this.currSit = sit;
+      return;
+      // if (!sit.player?.handCard) {
+      //   this.showInputHandCard = true;
+      //   this.currSit = sit;
+      //   return;
+      // }
     }
 
     get sitList() {

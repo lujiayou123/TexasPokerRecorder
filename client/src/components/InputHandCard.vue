@@ -1,6 +1,6 @@
 <template>
   <div class="buy-in"
-       v-show="showHandCardInput">
+       v-show="showInputHandCard">
     <div class="shadow"
          @click="closeInputHandCard"></div>
     <div class="buy-in-body">
@@ -23,7 +23,8 @@
     },
   })
   export default class InputHandCard extends Vue {
-    @Prop() private showHandCardInput!: boolean;
+    // prop
+    @Prop() private showInputHandCard!: boolean;
     // @Prop() private handCard1!: string;
     // @Prop() private handCard2!: string;
     // @Prop() private handCard!: string[];
@@ -31,25 +32,31 @@
     private handCard2: string = '';
     private handCard: string[] = [];
 
-
-    // private getHandCard() {
-    //   console.log('handCard1', this.handCard1);
-    //   console.log('handCard2', this.handCard2);
-    //   this.handCard = [this.handCard1, this.handCard2];
-    //   console.log('this.handCard', this.handCard);
-    // }
-
     private closeInputHandCard() {
-      this.$emit('update:showHandCardInput', false);
+      this.$emit('update:showInputHandCard', false);
     }
 
     private async inputHandCard() {
+      const cardDict: { [key: string]: string; } = {
+        2: 'a', 3: 'b', 4: 'c', 5: 'd', 6: 'e', 7: 'f', 8: 'g', 9: 'h', T: 'i', J: 'j', Q: 'k', K: 'l', A: 'm',
+        t: 'i', j: 'j', q: 'k', k: 'l', a: 'm',
+      };
+      const colorDict: { [key: string]: string; } = {
+        d: '1', c: '2', h: '3', s: '4',
+        D: '1', C: '2', H: '3', S: '4',
+      };
+      let card1 = '';
+      let card2 = '';
+      if (this.handCard1.length === 2) {
+        card1 = cardDict[this.handCard1[0]] + colorDict[this.handCard1[1]];
+      }
+      if (this.handCard2.length === 2) {
+        card2 = cardDict[this.handCard2[0]] + colorDict[this.handCard2[1]];
+      }
+      this.handCard = [card1, card2];
+      // this.$emit('child-event', 传递内容);
+      this.$emit('child-event', this.handCard);
       this.closeInputHandCard();
-      // console.log('handCard1', this.handCard1);
-      // console.log('handCard2', this.handCard2);
-      this.handCard = [this.handCard1, this.handCard2];
-      console.log('this.handCard', this.handCard);
-      this.$emit('handCard', this.handCard);
     }
     private mounted() {
       // this.buyInSize = this.min;
