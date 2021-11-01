@@ -19,6 +19,7 @@
           <i v-for="size in raiseSizeMap"
              @click="raise(size)"
              v-show="showActionSize(size)"
+             :key="size"
           > {{Math.floor(size)}}</i>
           <!--          <i @click="raise(pot)">{{pot}}</i>-->
           <!--          <i @click="raise(pot * 2)">{{2*pot}}</i>-->

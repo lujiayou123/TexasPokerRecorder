@@ -201,7 +201,7 @@
     }
 
     private sitDown(sit: ISit) {
-      console.log('sit:', sit);
+      console.log('sitDown::', sit);
       // this.showBuyIn = true;
       if (!sit.player && (!this.isPlay || !this.hasSit)) {
         if (this.currPlayer.counter <= 0) {
@@ -268,7 +268,7 @@
           sitMap.push(sitNode.node);
           sitNode = next as ILinkNode<ISit>;
         }
-        console.log('sit', sitMap);
+        console.log('sitList', sitMap);
         return sitMap;
       }
       return [];

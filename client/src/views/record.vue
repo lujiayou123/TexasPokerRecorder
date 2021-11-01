@@ -114,7 +114,7 @@
   }
 
   const GAME_BASE_SIZE = 1;
-  const ACTION_TIME = 30;
+  const ACTION_TIME = 999;
 
   @Component({
     components: {
@@ -227,16 +227,16 @@
     private messageList: any[] = [];
     private showRecord = false;
 
-    @Watch('players')
-    private playerChange(players: IPlayer[]) {
-      console.log('player change-------');
-      this.sitList = this.sitList.map((sit: ISit) => {
-        const player = players.find(
-          (p) => sit.player && p.userId === sit.player.userId && sit.player.counter > 0);
-        return Object.assign({}, {}, { player, position: sit.position }) as ISit;
-      });
-      this.initSitLink();
-    }
+    // @Watch('players')
+    // private playerChange(players: IPlayer[]) {
+    //   console.log('player change-------');
+    //   this.sitList = this.sitList.map((sit: ISit) => {
+    //     const player = players.find(
+    //       (p) => sit.player && p.userId === sit.player.userId && sit.player.counter > 0);
+    //     return Object.assign({}, {}, { player, position: sit.position }) as ISit;
+    //   });
+    //   this.initSitLink();
+    // }
 
     @Watch('isPlay')
     private isPlayChange(val: boolean) {
@@ -405,8 +405,8 @@
 
     private positionDict(position: number): string {
       const positionDict: { [key: number]: string; } = {
-        1: 'BTN', 2: 'SB', 3: 'BB', 4: 'UTG', 5: 'UTG+1',
-        6: 'MP', 7: 'LJ', 8: 'HJ', 9: 'CO',
+        1: 'UTG', 2: 'UTG+1', 3: 'MP', 4: 'LJ', 5: 'HJ',
+        6: 'CO', 7: 'BTN', 8: 'SB', 9: 'BB',
       };
       return positionDict[position];
     }
@@ -491,6 +491,17 @@
       } catch (e) {
         console.log(e);
       }
+      const nickNames = [];
+      let head = this.sitLink;
+      for (let i = 0; i < 9; i++) {
+        const player = head.node.player;
+        nickNames.push(player.nickName);
+        this.players.push(player);
+        head = head.next;
+      }
+      console.log('nickNames', nickNames);
+      console.log('players', this.players);
+      console.log('currPlayer', this.currPlayer);
 
       // document.addEventListener('visibilitychange', () => {
       //   if (!document.hidden) {
