@@ -179,7 +179,8 @@
     }
 
     get currPlayer() {
-      return this.players.find((u: IPlayer) => this.userInfo.userId === u.userId);
+      // return this.players.find((u: IPlayer) => this.userInfo.userId === u.userId);
+      return this.players.find((u: IPlayer) => this.currPosition === u.type);
     }
 
     get minActionSize() {
@@ -196,6 +197,7 @@
     // have a sit user
     private players: IPlayer[] = [];
     private userInfo: any = {};
+    private currPosition: string = '';
     private joinMsg = '';
     private handCard = [];
     private commonCard = [];
@@ -419,6 +421,7 @@
     }
 
     private initSitLink() {
+      this.currPosition = 'UTG';
       const sb = this.gameConfig.smallBlind;
       const bb = 2 * sb;
       const sitListMap = this.sitList || [];
@@ -502,6 +505,9 @@
       console.log('nickNames', nickNames);
       console.log('players', this.players);
       console.log('currPlayer', this.currPlayer);
+      console.log('userInfo', this.userInfo);
+      console.log('players', this.players);
+      console.log('currPosition', this.currPosition);
 
       // document.addEventListener('visibilitychange', () => {
       //   if (!document.hidden) {
