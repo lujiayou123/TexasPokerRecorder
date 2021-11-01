@@ -48,16 +48,14 @@
               {{ sit.player.type }}
             </div>
             <div class="hand-card"
-                 v-show="!!!currPlayer || (sit.player.userId !== currPlayer.userId
-            && sit.player.handCard
-            && sit.player.handCard.length !== 0)">
+                 v-show="sit.player.handCard
+            && sit.player.handCard.length !== 0">
               <cardList :cardList="sit.player.handCard"
                         :valueCards="valueCards"></cardList>
             </div>
             <div class="card-style"
-                 v-show="!!!currPlayer || (sit.player.userId !== currPlayer.userId
-            && sit.player.handCard
-            && sit.player.handCard.length !== 0)">
+                 v-show="sit.player.handCard
+            && sit.player.handCard.length !== 0">
               {{PokeStyle(sit.player.handCard)}}
             </div>
           </div>

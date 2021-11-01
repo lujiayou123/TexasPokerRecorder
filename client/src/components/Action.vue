@@ -168,14 +168,16 @@ import { IPlayer } from '@/interface/IPlayer';
   }
 
   private showActionBtn(type: string) {
+    // console.log('this.currPlayer?.type', this.currPlayer?.type);
     // check
     if ('check' === type) {
       return this.prevSize <= 0
         || (this.isPreFlop
           && this.isTwoPlayer
-          && this.currPlayer?.type === 'd'
+          && (this.currPlayer?.type === 'd' || this.currPlayer?.type === 'BTN')
           && this.prevSize === this.baseSize * 2)
-        || (this.currPlayer?.type === 'bb' && this.prevSize === this.baseSize * 2 &&
+        || ((this.currPlayer?.type === 'bb' || this.currPlayer?.type === 'BB')
+        && this.prevSize === this.baseSize * 2 &&
           this.isPreFlop);
     }
     // raise
@@ -188,9 +190,10 @@ import { IPlayer } from '@/interface/IPlayer';
         && this.prevSize > 0
         && !((this.isPreFlop
           && this.isTwoPlayer
-          && this.currPlayer?.type === 'd'
+          && (this.currPlayer?.type === 'd' || this.currPlayer?.type === 'BTN')
           && this.prevSize === 2 * this.baseSize)
-          || (this.currPlayer?.type === 'bb' && this.prevSize === 2 * this.baseSize &&
+          || ((this.currPlayer?.type === 'bb' || this.currPlayer?.type === 'BB')
+          && this.prevSize === 2 * this.baseSize &&
             this.isPreFlop));
     }
     return true;

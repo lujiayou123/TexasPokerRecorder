@@ -154,7 +154,7 @@
     }
 
     get isAction() {
-      return this.userInfo && this.userInfo.userId === this.actionUserId;
+      return this.currPlayer?.nickName === this.actionUserId;
     }
 
     get valueCards() {
@@ -188,7 +188,8 @@
     }
 
     get baseSize() {
-      return this.roomConfig.smallBlind || GAME_BASE_SIZE;
+      // return this.roomConfig.smallBlind || GAME_BASE_SIZE;
+      return this.gameConfig.smallBlind || GAME_BASE_SIZE;
     }
     public socket: any = null;
     // gameConfig
@@ -198,6 +199,20 @@
     private players: IPlayer[] = [];
     private userInfo: any = {};
     private currPosition: string = '';
+    private currIndex: number = 0;
+    private positionDict: { [key: number]: string; } = {
+        1: 'UTG', 2: 'UTG+1', 3: 'MP', 4: 'LJ', 5: 'HJ',
+        6: 'CO', 7: 'BTN', 8: 'SB', 9: 'BB',
+      };
+    private preflopActionOrder: { [key: number]: string; } = {
+        1: 'UTG', 2: 'UTG+1', 3: 'MP', 4: 'LJ', 5: 'HJ',
+        6: 'CO', 7: 'BTN', 8: 'SB', 9: 'BB',
+      };
+    private postflopActionOrder: { [key: number]: string; } = {
+        1: 'SB', 2: 'BB', 3: 'UTG', 4: 'UTG+1', 5: 'MP',
+        6: 'LJ', 7: 'HJ', 8: 'CO', 9: 'BTN',
+      };
+
     private joinMsg = '';
     private handCard = [];
     private commonCard = [];
@@ -228,6 +243,10 @@
     };
     private messageList: any[] = [];
     private showRecord = false;
+    private handInfo: string[] = [];
+    private moneyType: string = '$';
+    private isPreflop: boolean = true;
+    private isPostflop: boolean = false;
 
     // @Watch('players')
     // private playerChange(players: IPlayer[]) {
@@ -245,6 +264,16 @@
       if (val) {
         clearTimeout(this.timeSt);
         this.doCountDown();
+      }
+    }
+
+    @Watch('currIndex')
+    private isCurrIndexChange(val: number) {
+      if (val) {
+        console.log('currIndex Change to:', val);
+        this.currPosition = this.positionDict[val];
+        console.log('currPosition:', this.currPosition);
+        // 如果val到9，且没有结束行动
       }
     }
 
@@ -328,20 +357,90 @@
     }
 
     private action(command: string) {
-      if (command === 'fold') {
-        clearTimeout(this.timeSt);
+      console.log('最少下注', this.prevSize);
+      // if (this.currPlayer) {
+      //   console.log(`${this.currPlayer.nickName} ${command}`);
+      // }
+      if (command === 'call') {
+        this.pot = this.pot + this.prevSize;
+        if (this.currPlayer) {
+          this.currPlayer.actionSize = this.prevSize;
+          this.currPlayer.counter -= this.prevSize;
+          const infoString = `${this.currPlayer?.nickName} calls ${this.prevSize}${this.moneyType};\n`;
+          this.handInfo.push(infoString);
+          console.log(infoString);
+        }
       }
+
+      if (command.substring(0, 5) === 'raise') {
+        const raiseTo = Number(command.substring(6));
+        const raiseNum = raiseTo - this.prevSize;
+        this.pot += raiseTo;
+        this.prevSize = raiseTo;
+        if (this.currPlayer) {
+          this.currPlayer.actionSize = raiseTo;
+          this.currPlayer.counter -= raiseTo;
+          // this.currPlayer.status = 1;
+        }
+        // console.log('raiseNum', raiseNum);
+        // console.log('raiseTo', raiseTo);
+        // console.log(`${command}`);
+        const infoString = `${this.currPlayer?.nickName} raise ${raiseNum}${this.moneyType} to ${raiseTo}${this.moneyType};\n`;
+        this.handInfo.push(infoString);
+        console.log(infoString);
+        // console.log('handInfo', this.handInfo);
+      }
+      if (command === 'fold') {
+        if (this.currPlayer) {
+          this.currPlayer.status = -1;
+        }
+      }
+      // TODO allin多三块钱
       if (command === 'allin') {
         this.showAllin = true;
-        setTimeout(() => {
-          this.showAllin = false;
-        }, 3000);
+        // setTimeout(() => {
+        //   this.showAllin = false;
+        // }, 3000);
+
+
+        if (this.currPlayer) {
+          const raiseTo = this.currPlayer?.counter + this.currPlayer?.actionSize;
+          // const raiseTo = this.currPlayer?.counter;
+          const raiseNum = raiseTo - this.currPlayer?.actionSize;
+          console.log('allin加注量', raiseNum);
+          this.pot += raiseNum;
+          if (raiseTo > this.prevSize) {
+            this.prevSize = raiseTo;
+          }
+          this.currPlayer.actionSize = raiseTo;
+          this.currPlayer.counter -= raiseTo;
+          const infoString = `${this.currPlayer?.nickName} raise ${raiseNum}${this.moneyType} to ${raiseTo}${this.moneyType};\n`;
+          this.handInfo.push(infoString);
+          console.log(infoString);
+          // this.currPlayer.status = 1;
+        }
+        // console.log('raiseNum', raiseNum);
+        // console.log('raiseTo', raiseTo);
+        // console.log(`${command}`);
+
       }
-      this.emit('action', { command });
       // this.isAction = false;
       // this.isRaise = false;
+
+      // 不管执行了什么动作，跳到下一位玩家
+      this.nextPlayerTakeAction();
     }
 
+    private nextPlayerTakeAction() {
+      this.currIndex += 1;
+      this.getCurrPostionByCurrIndex(this.currIndex);
+      if (this.currPlayer) {
+        // 弹出行动条,check call raise fold
+        this.actionUserId = this.currPlayer.nickName;
+      }
+      // console.log('actionUserId:', this.currPlayer?.nickName);
+      console.log('轮到玩家:', this.currPlayer?.nickName);
+    }
 
     private async buyIn(size: number) {
       if (size <= 0) {
@@ -382,9 +481,21 @@
     // 记录
     private record() {
       console.log('开始记录手牌');
+      this.gaming = true;
+      this.pot = 3;
+      this.prevSize = 2;
+      this.isPreflop = true;
+      this.isPostflop = false;
+      console.log('baseSize:', this.baseSize);
+      console.log('prevSize:', this.prevSize);
+      console.log('minActionSize:', this.minActionSize);
       const gameConfig = cookie.get('gameConfig');
       console.log(gameConfig);
-      // this.isPlay = true
+      if (this.currPlayer) {
+        console.log('this.currPlayer', this.currPlayer);
+        this.actionUserId = this.currPlayer.nickName;
+        console.log('this.isAction', this.isAction);
+      }
     }
 
     private emit(eventType: string, data: any = {}) {
@@ -405,13 +516,13 @@
       return randomId;
     }
 
-    private positionDict(position: number): string {
-      const positionDict: { [key: number]: string; } = {
-        1: 'UTG', 2: 'UTG+1', 3: 'MP', 4: 'LJ', 5: 'HJ',
-        6: 'CO', 7: 'BTN', 8: 'SB', 9: 'BB',
-      };
-      return positionDict[position];
-    }
+    // private positionDict(position: number): string {
+    //   const positionDict: { [key: number]: string; } = {
+    //     1: 'UTG', 2: 'UTG+1', 3: 'MP', 4: 'LJ', 5: 'HJ',
+    //     6: 'CO', 7: 'BTN', 8: 'SB', 9: 'BB',
+    //   };
+    //   return positionDict[position];
+    // }
 
     private blindDict(position: string): number {
       const blindDict: { [key: string]: number; } = {
@@ -419,9 +530,24 @@
       };
       return blindDict[position];
     }
-
+    private counterDict(position: number): number {
+      const counterDict: { [key: number]: number; } = {
+          1: 2000 * this.gameConfig.smallBlind,
+          2: 2000 * this.gameConfig.smallBlind,
+          3: 2000 * this.gameConfig.smallBlind,
+          4: 2000 * this.gameConfig.smallBlind,
+          5: 2000 * this.gameConfig.smallBlind,
+          6: 2000 * this.gameConfig.smallBlind,
+          7: 2000 * this.gameConfig.smallBlind,
+          8: 2000 * this.gameConfig.smallBlind - 1,
+          9: 2000 * this.gameConfig.smallBlind - 2,
+        };
+      return counterDict[position];
+    }
     private initSitLink() {
       this.currPosition = 'UTG';
+      this.currIndex = 1;
+      // this.prevSize = this.gameConfig.smallBlind * 2;
       const sb = this.gameConfig.smallBlind;
       const bb = 2 * sb;
       const sitListMap = this.sitList || [];
@@ -429,10 +555,10 @@
         for (let i = 0; i < 9; i++) {
           const sit = {
             player: {
-              counter: 1000 * bb,
+              counter: this.counterDict(i + 1),
               nickName: this.getRandomId(8),
-              type: this.positionDict(i + 1),
-              actionSize: this.blindDict(this.positionDict(i + 1)),
+              type: this.positionDict[i + 1],
+              actionSize: this.blindDict(this.positionDict[i + 1]),
               actionCommand: '',
               buyIn: 1000 * bb,
               status: 1,
@@ -505,15 +631,29 @@
       console.log('nickNames', nickNames);
       console.log('players', this.players);
       console.log('currPlayer', this.currPlayer);
-      console.log('userInfo', this.userInfo);
+      console.log('actionUserId', this.actionUserId);
       console.log('players', this.players);
       console.log('currPosition', this.currPosition);
+      console.log('isAction', this.isAction);
 
       // document.addEventListener('visibilitychange', () => {
       //   if (!document.hidden) {
       //     this.socketInit();
       //   }
       // });
+    }
+
+    private getCurrPostionByCurrIndex(currIndex: number) {
+      this.currPosition = this.preflopActionOrder[currIndex];
+      console.log('getCurrPostionByCurrIndex, this.currPosition:', this.currPosition);
+    }
+
+    private logHandInfo() {
+      console.log('handInfo', this.handInfo);
+      const length = this.handInfo.length;
+      for (let i = 0; i < length; i++) {
+        console.log(this.handInfo[i]);
+      }
     }
   }
 </script>

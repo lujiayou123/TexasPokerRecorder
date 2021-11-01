@@ -31,7 +31,7 @@
       const valNum = Number(val);
       const size = Number(val) === 0 ? this.min : Math.floor(valNum / 100 * (this.max - this.min)) +
         this.min;
-      console.log('size', size);
+      // console.log('size', size);
       this.$emit('change', size);
       this.$emit('input', size);
     }
