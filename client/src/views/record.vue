@@ -96,8 +96,45 @@
   import service from '../service';
   import gameRecord from '@/components/GameRecord.vue';
   import {IGameRecord} from '@/interface/IGameRecord';
+  import { IPoker, Poker } from '../core/Poker';
+  import {EPlayerType, Player } from '../core/Player';
+  import Timeout = NodeJS.Timeout;
+
+  interface IPokerGame {
+    users: IPlayer[];
+    smallBlind: number;
+    isShort: boolean;
+    actionRoundComplete: () => void;
+    gameOverCallBack: () => void;
+    autoActionCallBack: (actionType: string, userId: string) => void;
+  }
+
+  /**
+   * Game over enum
+   */
+  export enum EGameOverType {
+    GAME_SHOWDOWN = 1,
+    GAME_OVER = 2,
+  }
+
+  /**
+   * Game state enum
+   */
+  export enum EGameStatus {
+    GAME_READY,
+    GAME_START,
+    GAME_FLOP,
+    GAME_TURN,
+    GAME_RIVER,
+    GAME_ACTION,
+    GAME_SHOWDOWN,
+    GAME_OVER,
+  }
 
   export enum ECommand {
+    SMALL_BLIND = 'SB',
+    BIG_BLIND = 'BB',
+    STRADDLE = 'Straddle',
     CALL   = 'call',
     ALL_IN = 'allin',
     RAISE  = 'raise',
@@ -189,7 +226,7 @@
 
     get baseSize() {
       // return this.roomConfig.smallBlind || GAME_BASE_SIZE;
-      return this.gameConfig.smallBlind || GAME_BASE_SIZE;
+      return this.smallBlind || GAME_BASE_SIZE;
     }
     public socket: any = null;
     // gameConfig
@@ -231,7 +268,7 @@
     // private playIncome = false;
     private msg = '';
     private time = ACTION_TIME;
-    private timeSt = 0;
+    private timeSt: number = 0;
     private commandRecordList = [];
     private actionEndTime = 0;
     private showCommandRecord = false;
@@ -245,8 +282,12 @@
     private showRecord = false;
     private handInfo: string[] = [];
     private moneyType: string = '$';
+    private playerNum: number = 9;
+    private smallBlind: number = 1;
     private isPreflop: boolean = true;
     private isPostflop: boolean = false;
+    private board = [];
+    private isRoundComplete: boolean = false;
 
     // @Watch('players')
     // private playerChange(players: IPlayer[]) {
@@ -273,7 +314,8 @@
         console.log('currIndex Change to:', val);
         this.currPosition = this.positionDict[val];
         console.log('currPosition:', this.currPosition);
-        // 如果val到9，且没有结束行动
+        console.log('currPlayer:', this.currPlayer);
+        // 如果val到10，且没有结束行动
       }
     }
 
@@ -287,6 +329,8 @@
         this.doCountDown();
       }
     }
+
+
 
     private init() {
       this.joinMsg = '';
@@ -315,11 +359,11 @@
         clearTimeout(this.timeSt);
         return;
       }
-      this.timeSt = setTimeout(() => {
-        const now = Date.now();
-        this.time = Math.floor((this.actionEndTime - now) / 1000);
-        this.doCountDown();
-      }, 1000);
+      // this.timeSt = setTimeout(() => {
+      //   const now = Date.now();
+      //   this.time = Math.floor((this.actionEndTime - now) / 1000);
+      //   this.doCountDown();
+      // }, 1000);
     }
 
     private PokeStyle(cards: string[]) {
@@ -433,6 +477,15 @@
 
     private nextPlayerTakeAction() {
       this.currIndex += 1;
+      // 一轮玩家行动后，检查这条街是否结束
+      if (this.currIndex >= this.playerNum + 1) {
+        this.isRoundComplete = this.checkRoundComplete();
+        if (this.isRoundComplete) {
+          this.currIndex = this.playerNum - 2;
+        } else {
+          this.currIndex = 1;
+        }
+      }
       this.getCurrPostionByCurrIndex(this.currIndex);
       if (this.currPlayer) {
         // 弹出行动条,check call raise fold
@@ -440,6 +493,7 @@
       }
       // console.log('actionUserId:', this.currPlayer?.nickName);
       console.log('轮到玩家:', this.currPlayer?.nickName);
+      // console.log('当前Index:', this.currIndex);
     }
 
     private async buyIn(size: number) {
@@ -516,6 +570,20 @@
       return randomId;
     }
 
+    private checkRoundComplete(): boolean {
+      for (let i = 0; i < this.playerNum; i++) {
+        // 没有弃牌
+        if (this.players[i].status !== -1) {
+          if (this.players[i].actionSize !== this.prevSize) {
+            console.log('Round Not Complete');
+            return false;
+          }
+        }
+      }
+      console.log('Round Complete');
+      return true;
+    }
+
     // private positionDict(position: number): string {
     //   const positionDict: { [key: number]: string; } = {
     //     1: 'UTG', 2: 'UTG+1', 3: 'MP', 4: 'LJ', 5: 'HJ',
@@ -532,23 +600,23 @@
     }
     private counterDict(position: number): number {
       const counterDict: { [key: number]: number; } = {
-          1: 2000 * this.gameConfig.smallBlind,
-          2: 2000 * this.gameConfig.smallBlind,
-          3: 2000 * this.gameConfig.smallBlind,
-          4: 2000 * this.gameConfig.smallBlind,
-          5: 2000 * this.gameConfig.smallBlind,
-          6: 2000 * this.gameConfig.smallBlind,
-          7: 2000 * this.gameConfig.smallBlind,
-          8: 2000 * this.gameConfig.smallBlind - 1,
-          9: 2000 * this.gameConfig.smallBlind - 2,
+          1: 2000 * this.smallBlind,
+          2: 2000 * this.smallBlind,
+          3: 2000 * this.smallBlind,
+          4: 2000 * this.smallBlind,
+          5: 2000 * this.smallBlind,
+          6: 2000 * this.smallBlind,
+          7: 2000 * this.smallBlind,
+          8: 2000 * this.smallBlind - 1,
+          9: 2000 * this.smallBlind - 2,
         };
       return counterDict[position];
     }
     private initSitLink() {
       this.currPosition = 'UTG';
       this.currIndex = 1;
-      // this.prevSize = this.gameConfig.smallBlind * 2;
-      const sb = this.gameConfig.smallBlind;
+      // this.prevSize = this.smallBlind * 2;
+      const sb = this.smallBlind;
       const bb = 2 * sb;
       const sitListMap = this.sitList || [];
       if (sitListMap.length === 0) {
@@ -611,6 +679,9 @@
     private created() {
       const gameConfig = cookie.get('gameConfig') || localStorage.getItem('gameConfig') || '';
       this.gameConfig = JSON.parse(gameConfig);
+      this.playerNum = this.gameConfig.playerNum;
+      this.smallBlind = this.smallBlind;
+      this.moneyType = this.gameConfig.moneyType;
       console.log(this.gameConfig);
       try {
         // this.socketInit();

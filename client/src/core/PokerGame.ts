@@ -1,7 +1,7 @@
 import { IPoker, Poker } from './Poker';
 import { ECommand, EPlayerType, IPlayer, Player } from './Player';
 import { PokerStyle } from './PokerStyle';
-import { ILinkNode, Link } from '../../utils/Link';
+import { ILinkNode, Link } from './Link';
 import Timeout = NodeJS.Timeout;
 
 /**

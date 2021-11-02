@@ -6,6 +6,9 @@ export interface IPoker {
   getRandom(number: number): number;
 }
 
+/**
+ * Created by jorky on 2020/2/23.
+ */
 export class Poker implements IPoker {
   private pokers: string [] = [];
   private readonly isShort: boolean;

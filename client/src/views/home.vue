@@ -111,6 +111,7 @@
     private showGameconfig = false;
     // 人数
     private playerNum = 9;
+    private moneyType = '￥';
     private showRecord = false;
     private commandList = [];
     private currGameIndex = 0;
@@ -191,6 +192,7 @@
       const gameConfig = {
           smallBlind: this.smallBlind,
           playerNum: this.playerNum,
+          moneyType: this.moneyType,
         };
       localStorage.setItem('gameConfig', JSON.stringify(gameConfig));
       cookie.set('gameConfig', gameConfig, {expires: 1});
