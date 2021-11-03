@@ -148,7 +148,7 @@
     // private playIncome = false;
     private msg = '';
     private time = ACTION_TIME;
-    private timeSt = 0;
+    private timeSt: number = 0;
     private commandRecordList = [];
     private actionEndTime = 0;
     private showCommandRecord = false;

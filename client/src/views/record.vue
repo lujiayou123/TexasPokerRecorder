@@ -80,7 +80,6 @@
   import sitList from '../components/CustomSitList.vue';
   // import sitList from '../components/SitList.vue';
   import commonCard from '../components/CommonCard.vue';
-  import { IPlayer } from '@/interface/IPlayer';
   import { ILinkNode, Link } from '@/utils/Link';
   import ISit from '../interface/ISit';
   import BuyIn from '../components/BuyIn.vue';
@@ -97,11 +96,11 @@
   import gameRecord from '@/components/GameRecord.vue';
   import {IGameRecord} from '@/interface/IGameRecord';
   import { IPoker, Poker } from '../core/Poker';
-  import {EPlayerType, Player } from '../core/Player';
+  import { EPlayerType, Player, IPlayer } from '../core/Player';
   import Timeout = NodeJS.Timeout;
 
   interface IPokerGame {
-    users: IPlayer[];
+    users: Player[];
     smallBlind: number;
     isShort: boolean;
     actionRoundComplete: () => void;
@@ -216,9 +215,16 @@
     }
 
     get currPlayer() {
-      // return this.players.find((u: IPlayer) => this.userInfo.userId === u.userId);
-      return this.players.find((u: IPlayer) => this.currPosition === u.type);
+      // return this.players.find((u: Player) => this.userInfo.userId === u.userId);
+      // return this.players.find((u: Player) => this.currPosition === u.type);
+      return this.players.find((u: Player) => this.currIndex === u.position);
     }
+    // get SBPlayer() {
+    //   return this.players.find((u: IPlayer) => 'SB' === u.type);
+    // }
+    // get BBPlayer() {
+    //   return this.players.find((u: IPlayer) => 'BB' === u.type);
+    // }
 
     get minActionSize() {
       return this.prevSize <= 0 ? this.baseSize * 2 : this.prevSize * 2;
@@ -233,7 +239,7 @@
     private gameConfig: any;
     // in the room user
     // have a sit user
-    private players: IPlayer[] = [];
+    private players: Player[] = [];
     private userInfo: any = {};
     private currPosition: string = '';
     private currIndex: number = 0;
@@ -252,13 +258,9 @@
 
     private joinMsg = '';
     private handCard = [];
-    private commonCard = [];
-    private pot = 0;
-    private slidePots = [];
-    private prevSize = 0;
-    private winner: IPlayer [][] = [];
     private showBuyIn = false;
     private showSetting = false;
+    // private sitLink: any = '';
     private sitLink: any = '';
     private gaming = false;
     private sitList: ISit[] = [];
@@ -288,9 +290,31 @@
     private isPostflop: boolean = false;
     private board = [];
     private isRoundComplete: boolean = false;
+    // private playerLink: Link<Player> = new Link<Player>(this.players);
+    private playerLink?: Link<Player>;
+    private poker: IPoker = new Poker();
+    private prevPot: number = 0;
+    private currActionAllinPlayer: Player[] = [];
+    private slidePots: number [] = [];
+    private prevSize: number = 0;
+    // public currPlayer: ILinkNode<Player>;
+    private allInPlayers: Player[] = [];
+    private playerSize: number = 0;
+    private pot: number = 0;
+    private status: EGameStatus = EGameStatus.GAME_READY;
+    private commonCard: string[] = [];
+    private winner: Player[][] = [];
+    private allPlayer: Player[] = [];
+    private gameOverType: EGameOverType = EGameOverType.GAME_SHOWDOWN;
+    private SBPlayer?: Player;
+    private BBPlayer?: Player;
+    private currPlayerNode?: ILinkNode<Player>;
+    // private readonly actionRoundComplete: () => void;
+    // private readonly gameOverCallBack: () => void;
+    // private readonly autoActionCallBack: (actionType: string, userId: string) => void;
 
     // @Watch('players')
-    // private playerChange(players: IPlayer[]) {
+    // private playerChange(players: Player[]) {
     //   console.log('player change-------');
     //   this.sitList = this.sitList.map((sit: ISit) => {
     //     const player = players.find(
@@ -300,39 +324,69 @@
     //   this.initSitLink();
     // }
 
-    @Watch('isPlay')
-    private isPlayChange(val: boolean) {
-      if (val) {
-        clearTimeout(this.timeSt);
-        this.doCountDown();
-      }
-    }
+    // @Watch('isPlay')
+    // private isPlayChange(val: boolean) {
+    //   if (val) {
+    //     clearTimeout(this.timeSt);
+    //     this.doCountDown();
+    //   }
+    // }
 
-    @Watch('currIndex')
-    private isCurrIndexChange(val: number) {
-      if (val) {
-        console.log('currIndex Change to:', val);
-        this.currPosition = this.positionDict[val];
-        console.log('currPosition:', this.currPosition);
-        console.log('currPlayer:', this.currPlayer);
-        // 如果val到10，且没有结束行动
-      }
-    }
+    // @Watch('currIndex')
+    // private isCurrIndexChange(val: number) {
+    //   if (val) {
+    //     console.log('currIndex Change to:', val);
+    //     this.currPosition = this.positionDict[val];
+    //     console.log('currPosition:', this.currPosition);
+    //     console.log('currPlayer:', this.currPlayer);
+    //     // 如果val到10，且没有结束行动
+    //   }
+    // }
 
     @Watch('actionUserId')
     private actionUserIdChange() {
-      if (this.isPlay && this.actionEndTime) {
-        console.log('action player change-------', this.actionEndTime);
-        const now = Date.now();
-        this.time = Math.floor((this.actionEndTime - now) / 1000);
-        clearTimeout(this.timeSt);
-        this.doCountDown();
+      // if (this.isPlay && this.actionEndTime) {
+      //   console.log('action player change-------', this.actionEndTime);
+      //   const now = Date.now();
+      //   this.time = Math.floor((this.actionEndTime - now) / 1000);
+      //   clearTimeout(this.timeSt);
+      //   this.doCountDown();
+      // }
+      // 监听player信息的变化，同步到sit，从而实时显示画面
+      let sitHead = this.sitLink;
+      let playerHead = this.playerLink?.link;
+      for (let i = 0; i < this.playerNum; i++) {
+        if (sitHead && playerHead && playerHead.next) {
+          sitHead.node.player.counter = playerHead.node.counter;
+          sitHead.node.player.actionSize = playerHead.node.actionSize;
+          sitHead.node.player.actionCommand = playerHead.node.actionCommand;
+          sitHead.node.player.status = playerHead.node.status;
+          sitHead = sitHead.next;
+          playerHead = playerHead.next;
+        }
       }
     }
 
-
+    // @Watch('playerLink')
+    // // 监听player信息的变化，同步到sit，从而实时显示画面
+    // private playerLinkSyncSitLink() {
+    //   console.log('playerLinkChange');
+    //   let sitHead = this.sitLink;
+    //   let playerHead = this.playerLink?.link;
+    //   for (let i = 0; i < this.playerNum; i++) {
+    //     if (sitHead && playerHead && playerHead.next) {
+    //       sitHead.node.player.counter = playerHead.node.counter;
+    //       sitHead.node.player.actionSize = playerHead.node.actionSize;
+    //       sitHead.node.player.actionCommand = playerHead.node.actionCommand;
+    //       sitHead.node.player.status = playerHead.node.status;
+    //       sitHead = sitHead.next;
+    //       playerHead = playerHead.next;
+    //     }
+    //   }
+    // }
 
     private init() {
+      this.initSitLink(); // 为每个座位玩家进行相应设置，并得到this.sitLink
       this.joinMsg = '';
       this.handCard = [];
       this.commonCard = [];
@@ -341,12 +395,16 @@
       this.time = ACTION_TIME;
       this.winner = [];
       this.showBuyIn = false;
-      this.initSitLink();
+      const gameConfig = cookie.get('gameConfig') || localStorage.getItem('gameConfig') || '';
+      this.gameConfig = JSON.parse(gameConfig);
+      this.playerNum = this.gameConfig.playerNum;
+      this.smallBlind = this.smallBlind;
+      this.moneyType = this.gameConfig.moneyType;
     }
 
     private sendMsgHandle(msgInfo: string) {
       const msg = `${this.userInfo.nickName}:${msgInfo}`;
-      this.emit('broadcast', { msg });
+      // this.emit('broadcast', { msg });
     }
 
     private showCounterRecord() {
@@ -393,15 +451,15 @@
     }
 
     private sitDown() {
-      this.emit('sitDown', { sitList: this.sitListMap() });
+      // this.emit('sitDown', { sitList: this.sitListMap() });
     }
 
     private delay() {
-      this.emit('delayTime');
+      // this.emit('delayTime');
     }
 
     private action(command: string) {
-      console.log('最少下注', this.prevSize);
+      // console.log('最少下注', this.prevSize);
       // if (this.currPlayer) {
       //   console.log(`${this.currPlayer.nickName} ${command}`);
       // }
@@ -492,7 +550,7 @@
         this.actionUserId = this.currPlayer.nickName;
       }
       // console.log('actionUserId:', this.currPlayer?.nickName);
-      console.log('轮到玩家:', this.currPlayer?.nickName);
+      // console.log('轮到玩家:', this.currPlayer?.nickName);
       // console.log('当前Index:', this.currIndex);
     }
 
@@ -507,9 +565,9 @@
         this.showMsg = true;
         this.msg = this.hasSit && this.isPlay
           ? `已补充买入 ${size},下局生效` : `已补充买入 ${size}`;
-        this.emit('buyIn', {
-          buyInSize: size,
-        });
+        // this.emit('buyIn', {
+        //   buyInSize: size,
+        // });
       } catch (e) {
         console.log(e);
       }
@@ -520,45 +578,121 @@
         this.$plugin.toast('sorry, please fold you hand!');
         return;
       }
-      this.emit('standUp');
+      // this.emit('standUp');
       this.showSetting = false;
     }
 
     private play() {
       if (this.players.length >= 2) {
         this.gaming = true;
-        this.emit('playGame');
+        // this.emit('playGame');
       } else {
         console.log('no enough player');
       }
     }
+
+    private setBlind() {
+        console.log('放置大小盲');
+        // sb blind
+        if (this.playerLink) {
+          // Sb在倒数第二
+          const SBPlayerNode = this.playerLink.getNode(this.playerNum - 2);
+          this.SBPlayer = SBPlayerNode.node;
+          if (SBPlayerNode.next) {
+            // big blind
+            const BBPlayerNode: ILinkNode<Player> = SBPlayerNode.next;
+            this.BBPlayer = BBPlayerNode.node;
+            this.SBPlayer.action(`sb:${this.smallBlind}`);
+            // this.SBPlayer.actionSize = 1;
+            this.BBPlayer.action(`bb:${this.smallBlind * 2}`);
+            this.prevSize = this.smallBlind * 2;
+            this.pot = this.smallBlind * 3;
+            // todo straddle
+          } else {
+            throw new Error('player Inadequate');
+          }
+        }
+      }
+
+    private setPlayer(users: IPlayer[]) {
+    console.log('init player ======================================================', users);
+    users.forEach((u, position) => {
+      const player = new Player({
+        ...u,
+        position,
+      });
+      this.allPlayer.push(player);
+    });
+    return new Link<Player>(this.allPlayer);
+  }
     // 记录
     private record() {
       console.log('开始记录手牌');
       this.gaming = true;
-      this.pot = 3;
-      this.prevSize = 2;
-      this.isPreflop = true;
-      this.isPostflop = false;
-      console.log('baseSize:', this.baseSize);
-      console.log('prevSize:', this.prevSize);
-      console.log('minActionSize:', this.minActionSize);
-      const gameConfig = cookie.get('gameConfig');
-      console.log(gameConfig);
-      if (this.currPlayer) {
-        console.log('this.currPlayer', this.currPlayer);
-        this.actionUserId = this.currPlayer.nickName;
-        console.log('this.isAction', this.isAction);
+
+
+      // this.pot = 3;
+      // this.prevSize = 2;
+      // this.isPreflop = true;
+      // this.isPostflop = false;
+      // console.log('baseSize:', this.baseSize);
+      // console.log('prevSize:', this.prevSize);
+      // console.log('minActionSize:', this.minActionSize);
+
+
+      // this.players是由this.sitLink组成的，所以不能和this.playerLink同步
+      let sitLinkHead = this.sitLink;
+      const IPlayers: IPlayer[] = [];
+      for (let i = 0; i < this.playerNum; i++) {
+        const iplayer = sitLinkHead.node.player;
+        IPlayers.push(iplayer);
+        sitLinkHead = sitLinkHead.next;
       }
+      // init playerLink
+      this.playerLink = this.setPlayer(IPlayers);
+      // set this.players
+      let playerLinkHead = this.playerLink.link;
+      // console.log('playerLinkHead', playerLinkHead);
+      for (let i = 0; i < this.playerNum; i++) {
+        const player = playerLinkHead.node;
+        this.players.push(player);
+        if (playerLinkHead.next) {
+          playerLinkHead = playerLinkHead.next;
+        } else {
+          console.log('detect playerLinkHead.next is null');
+        }
+      }
+      console.log('players:', this.players);
+      // set playerSize
+      this.playerSize = this.playerNum;
+      // set SB, BB,Straddle
+      this.setBlind();
+      // set game status
+      this.status = EGameStatus.GAME_READY;
+      //
+      // this.currPosition = 'UTG';
+      this.currIndex = 0;
+      console.log('currPlayer', this.currPlayer);
+      if (this.currPlayer) {
+        this.actionUserId = this.currPlayer.nickName;
+      }
+      // console.log('playerLink', this.playerLink);
+      // console.log('sitLink', this.sitLink);
+      // console.log('playerNode8', this.playerLink.getNode(8));
+      // console.log('sitNode8', this.getSitLinkNode(8));
     }
 
-    private emit(eventType: string, data: any = {}) {
-      this.socket.emit(eventType, {
-        target: '',
-        payload: {
-          ...data,
-        },
-      });
+    private getSitLinkNode(position: number) {
+      let linkNode = this.sitLink;
+      let i = 0;
+      while (linkNode.next) {
+        if (i === position) {
+          return linkNode;
+        }
+        linkNode = linkNode.next;
+        i++;
+      }
+      return linkNode;
     }
 
     private getRandomId(length: number): string {
@@ -607,14 +741,14 @@
           5: 2000 * this.smallBlind,
           6: 2000 * this.smallBlind,
           7: 2000 * this.smallBlind,
-          8: 2000 * this.smallBlind - 1,
-          9: 2000 * this.smallBlind - 2,
+          8: 2000 * this.smallBlind,
+          9: 2000 * this.smallBlind,
+          // 8: 2000 * this.smallBlind - 1,
+          // 9: 2000 * this.smallBlind - 2,
         };
       return counterDict[position];
     }
     private initSitLink() {
-      this.currPosition = 'UTG';
-      this.currIndex = 1;
       // this.prevSize = this.smallBlind * 2;
       const sb = this.smallBlind;
       const bb = 2 * sb;
@@ -626,28 +760,29 @@
               counter: this.counterDict(i + 1),
               nickName: this.getRandomId(8),
               type: this.positionDict[i + 1],
-              actionSize: this.blindDict(this.positionDict[i + 1]),
+              // actionSize: this.blindDict(this.positionDict[i + 1]),
+              actionSize: 0,
               actionCommand: '',
               buyIn: 1000 * bb,
               status: 1,
               isSit: true,
               delayCount: 999,
             },
-            position: i + 1,
+            position: i,
           };
           sitListMap.push(sit);
         }
       }
-      let link = new Link<ISit>(sitListMap).link;
-      for (let i = 0; i < 9; i++) {
-        if (link.node.player
-          && link.node.player.userId === this.currPlayer?.userId) {
-          this.sitLink = link;
-          return;
-        }
-        const next = link.next;
-        link = next as ILinkNode<ISit>;
-      }
+      const link = new Link<ISit>(sitListMap).link;
+      // for (let i = 0; i < 9; i++) {
+      //   if (link.node.player
+      //     && link.node.player.userId === this.currPlayer?.userId) {
+      //     this.sitLink = link;
+      //     return;
+      //   }
+      //   const next = link.next;
+      //   link = next as ILinkNode<ISit>;
+      // }
       this.sitLink = link;
     }
 
@@ -677,46 +812,12 @@
 
     // 生命周期created
     private created() {
-      const gameConfig = cookie.get('gameConfig') || localStorage.getItem('gameConfig') || '';
-      this.gameConfig = JSON.parse(gameConfig);
-      this.playerNum = this.gameConfig.playerNum;
-      this.smallBlind = this.smallBlind;
-      this.moneyType = this.gameConfig.moneyType;
-      console.log(this.gameConfig);
-      try {
-        // this.socketInit();
-        if (!this.sitLink) {
-          this.initSitLink();
-        }
-      } catch (e) {
-        console.log(e);
-      }
-      const nickNames = [];
-      let head = this.sitLink;
-      for (let i = 0; i < 9; i++) {
-        const player = head.node.player;
-        nickNames.push(player.nickName);
-        this.players.push(player);
-        head = head.next;
-      }
-      console.log('nickNames', nickNames);
-      console.log('players', this.players);
-      console.log('currPlayer', this.currPlayer);
-      console.log('actionUserId', this.actionUserId);
-      console.log('players', this.players);
-      console.log('currPosition', this.currPosition);
-      console.log('isAction', this.isAction);
-
-      // document.addEventListener('visibilitychange', () => {
-      //   if (!document.hidden) {
-      //     this.socketInit();
-      //   }
-      // });
+      this.init();
     }
 
     private getCurrPostionByCurrIndex(currIndex: number) {
       this.currPosition = this.preflopActionOrder[currIndex];
-      console.log('getCurrPostionByCurrIndex, this.currPosition:', this.currPosition);
+      // console.log('getCurrPostionByCurrIndex, this.currPosition:', this.currPosition);
     }
 
     private logHandInfo() {

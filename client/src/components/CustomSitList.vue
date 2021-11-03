@@ -101,6 +101,7 @@
 <script lang="ts">
   import { Component, Prop, Watch, Vue } from 'vue-property-decorator';
   import { IPlayer } from '@/interface/IPlayer';
+  import { Player } from '@/core/Player';
   import { ILinkNode } from '@/utils/Link';
   import ISit from '@/interface/ISit';
   import cardList from './CardList.vue';
@@ -120,7 +121,8 @@
   })
   export default class SitList extends Vue {
     @Prop() private msg!: string;
-    @Prop() private currPlayer!: IPlayer;
+    // @Prop() private currPlayer!: IPlayer;
+    @Prop() private currPlayer!: Player;
     @Prop() private commonCard!: string[];
     @Prop() private sitLink!: ILinkNode<ISit>;
     @Prop() private handCard!: string[];
@@ -221,7 +223,7 @@
           if (sitNode) {
             const next = sitNode.next;
             if (sit.position === sitNode.node.position) {
-              sitNode.node.player = this.currPlayer as IPlayer;
+              sitNode.node.player = this.currPlayer as Player;
               this.$emit('update:sitLink', sitNode);
               this.$emit('sit', sitNode);
               break;
@@ -266,7 +268,7 @@
           sitMap.push(sitNode.node);
           sitNode = next as ILinkNode<ISit>;
         }
-        console.log('sitList', sitMap);
+        // console.log('sitList', sitMap);
         return sitMap;
       }
       return [];
