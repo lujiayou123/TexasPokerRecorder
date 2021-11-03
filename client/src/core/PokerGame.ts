@@ -332,7 +332,7 @@ export class PokerGame {
   /**
    * Start next action round
    */
-  startActionRound(time= ACTION_TIME) {
+  private startActionRound(time= ACTION_TIME) {
     this.actionTimeOut = setTimeout(async () => {
       console.log('come in delay round --------2', this.actionTimeDelayCount);
       // delay action time
@@ -354,7 +354,7 @@ export class PokerGame {
    * player action
    * @param {string} commandString - player action command string, include 'call', 'fold', 'raise:xxx(size)', 'allin', 'check'
    */
-  action(commandString: string) {
+  private action(commandString: string) {
     if (this.status === EGameStatus.GAME_ACTION && this.currPlayer.next) {
       const commands = commandString.split(':');
       const command = commands[0];

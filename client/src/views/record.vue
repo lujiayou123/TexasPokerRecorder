@@ -458,6 +458,17 @@
       // this.emit('delayTime');
     }
 
+    private nextPlayer() {
+      if (this.currPlayerNode?.next) {
+        this.currPlayerNode = this.currPlayerNode?.next;
+      }
+      if (this.currPlayerNode) {
+         this.currIndex = this.currPlayerNode.node.position;
+      }
+      console.log(this.currPlayerNode);
+      console.log(this.currIndex);
+    }
+
     private action(command: string) {
       // console.log('最少下注', this.prevSize);
       // if (this.currPlayer) {
@@ -530,7 +541,8 @@
       // this.isRaise = false;
 
       // 不管执行了什么动作，跳到下一位玩家
-      this.nextPlayerTakeAction();
+      // this.nextPlayerTakeAction();
+      this.nextPlayer();
     }
 
     private nextPlayerTakeAction() {
@@ -615,7 +627,7 @@
       }
 
     private setPlayer(users: IPlayer[]) {
-    console.log('init player ======================================================', users);
+    // console.log('init player ======================================================', users);
     users.forEach((u, position) => {
       const player = new Player({
         ...u,
@@ -625,61 +637,72 @@
     });
     return new Link<Player>(this.allPlayer);
   }
+
+  private initPlayerLink() {
+    // this.players是由this.sitLink组成的，所以不能和this.playerLink同步
+    let sitLinkHead = this.sitLink;
+    const IPlayers: IPlayer[] = [];
+    for (let i = 0; i < this.playerNum; i++) {
+      const iplayer = sitLinkHead.node.player;
+      IPlayers.push(iplayer);
+      sitLinkHead = sitLinkHead.next;
+    }
+    // init playerLink
+    this.playerLink = this.setPlayer(IPlayers);
+    // set this.players
+    let playerLinkHead = this.playerLink.link;
+    // console.log('playerLinkHead', playerLinkHead);
+    for (let i = 0; i < this.playerNum; i++) {
+      const player = playerLinkHead.node;
+      this.players.push(player);
+      if (playerLinkHead.next) {
+        playerLinkHead = playerLinkHead.next;
+      } else {
+        console.log('detect playerLinkHead.next is null');
+      }
+    }
+    console.log('players:', this.players);
+  }
     // 记录
     private record() {
       console.log('开始记录手牌');
+      // 进入gaming的UI
       this.gaming = true;
-
-
-      // this.pot = 3;
-      // this.prevSize = 2;
-      // this.isPreflop = true;
-      // this.isPostflop = false;
-      // console.log('baseSize:', this.baseSize);
-      // console.log('prevSize:', this.prevSize);
-      // console.log('minActionSize:', this.minActionSize);
-
-
-      // this.players是由this.sitLink组成的，所以不能和this.playerLink同步
-      let sitLinkHead = this.sitLink;
-      const IPlayers: IPlayer[] = [];
-      for (let i = 0; i < this.playerNum; i++) {
-        const iplayer = sitLinkHead.node.player;
-        IPlayers.push(iplayer);
-        sitLinkHead = sitLinkHead.next;
-      }
-      // init playerLink
-      this.playerLink = this.setPlayer(IPlayers);
-      // set this.players
-      let playerLinkHead = this.playerLink.link;
-      // console.log('playerLinkHead', playerLinkHead);
-      for (let i = 0; i < this.playerNum; i++) {
-        const player = playerLinkHead.node;
-        this.players.push(player);
-        if (playerLinkHead.next) {
-          playerLinkHead = playerLinkHead.next;
-        } else {
-          console.log('detect playerLinkHead.next is null');
-        }
-      }
-      console.log('players:', this.players);
+      // 初始化PlayerLink
+      this.initPlayerLink();
       // set playerSize
       this.playerSize = this.playerNum;
       // set SB, BB,Straddle
       this.setBlind();
       // set game status
       this.status = EGameStatus.GAME_READY;
-      //
-      // this.currPosition = 'UTG';
-      this.currIndex = 0;
-      console.log('currPlayer', this.currPlayer);
+      // UTG第一个行动
+      if (this.playerLink) {
+        this.currPlayerNode = this.playerLink.getNode(0);
+      }
+      // console.log('currPlayerNode', this.currPlayerNode);
+      if (this.currPlayerNode) {
+        // 通过currIndex切换currPlayer
+        this.currIndex = this.currPlayerNode.node.position;
+      }
+      // console.log('currPlayer', this.currPlayer);
+
+      this.startActionRound();
+    }
+
+    private startActionRound() {
+      let playerName = '';
+      if (this.currPlayerNode) {
+        playerName = this.currPlayerNode.node.nickName;
+      }
+      console.log('playerName start', playerName);
+      // 设置当前行动者为currPlayer
       if (this.currPlayer) {
+        // 通过currPlayer切换actionUserId
+        // 同时，actionUserId会被监听，实时反馈到sit，形成切换玩家行动的效果
         this.actionUserId = this.currPlayer.nickName;
       }
-      // console.log('playerLink', this.playerLink);
-      // console.log('sitLink', this.sitLink);
-      // console.log('playerNode8', this.playerLink.getNode(8));
-      // console.log('sitNode8', this.getSitLinkNode(8));
+      // this.action('fold');
     }
 
     private getSitLinkNode(position: number) {

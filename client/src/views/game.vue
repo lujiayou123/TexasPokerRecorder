@@ -276,11 +276,11 @@
         clearTimeout(this.timeSt);
         return;
       }
-      this.timeSt = setTimeout(() => {
-        const now = Date.now();
-        this.time = Math.floor((this.actionEndTime - now) / 1000);
-        this.doCountDown();
-      }, 1000);
+      // this.timeSt = setTimeout(() => {
+      //   const now = Date.now();
+      //   this.time = Math.floor((this.actionEndTime - now) / 1000);
+      //   this.doCountDown();
+      // }, 1000);
     }
 
     private PokeStyle(cards: string[]) {
