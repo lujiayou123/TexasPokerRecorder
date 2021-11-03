@@ -9,7 +9,7 @@
         <span @click="action('call')"
               v-show="showActionBtn('call')">call</span>
         <span @click="otherSizeHandle()"
-              v-show="showActionBtn('raise')">more</span>
+              v-show="showActionBtn('raise')">raise</span>
         <span @click="action('allin')"
               v-show="!showActionBtn('raise')">allin</span>
       </div>

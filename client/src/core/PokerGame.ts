@@ -581,6 +581,7 @@ export class PokerGame {
     this.allPlayer.forEach(player => {
       player.clearActionSize();
     });
+    
   }
 
   /**
