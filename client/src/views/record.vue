@@ -98,6 +98,7 @@
   import {IGameRecord} from '@/interface/IGameRecord';
   import { IPoker, Poker } from '../core/Poker';
   import { EPlayerType, Player, IPlayer } from '../core/Player';
+  import fastClick from 'fastclick';
   import Timeout = NodeJS.Timeout;
 
   interface IPokerGame {
@@ -313,6 +314,73 @@
     private actionRoundComplete: boolean = false;
     private isShort: boolean = false;
     private refreshSitList: number = 0;
+    private removedPlayers: Player[] = [];
+
+    public getWinner() {
+      if (this.currPlayerNode) {
+        // only one winner, other players fold
+        if (this.allInPlayers.length === 0 && this.playerSize === 1
+          || this.allInPlayers.length === 1 && this.playerSize === 0) {
+          console.log('only one player');
+          this.gameOverType = EGameOverType.GAME_OVER;
+          const winner = this.allInPlayers[0] || this.currPlayerNode.node;
+          this.status = EGameStatus.GAME_OVER;
+          this.winner.push([ winner ]);
+          return;
+        }
+        // game show down
+        while (this.status !== EGameStatus.GAME_SHOWDOWN) {
+          this.sendCard();
+          this.setSate();
+        }
+
+        this.status = EGameStatus.GAME_OVER;
+        this.gameOverType = EGameOverType.GAME_SHOWDOWN;
+
+        this.getPlayerPokerStyle();
+
+        /**
+         * The max player can't win all of pot, get the largest of the remaining players
+         * @param {Player[]} excludePlayers - exclude players
+         */
+        const getOtherWinner = (excludePlayers: Player[]) => {
+          // all player allin, winner can't get all pot
+          const allPlayer = this.getPlayers('all', excludePlayers);
+          // all player are exclude
+          if (allPlayer) {
+            if (allPlayer.length === 0) {
+              return;
+            }
+            const maxLastPlayer = this.getMaxPlayers(allPlayer);
+            this.winner.push(maxLastPlayer);
+            if (this.getLeftoverPot() > 0) {
+              getOtherWinner([ ...excludePlayers, ...maxLastPlayer ]);
+            }
+          }
+          getOtherWinner([]);
+          };
+      }
+    }
+
+    public getFirstActionPlayer() {
+      if (this.playerLink) {
+        const player = this.allPlayer.filter((p) => p.counter > 0
+        && p.position !== 0 && p.actionCommand !== 'fold' && p.type === 'SB')[0];
+      // console.log('getFirstActionPlayer-------player', player);
+        this.currIndex = player.position;
+        this.setCurrPlayerAction();
+        let link: ILinkNode<Player> | null = this.playerLink.link;
+        for (let i = 0; i < this.playerSize; i++) {
+        if (link?.node.nickName === player?.nickName) {
+          // console.log('getFirstActionPlayerLink', link);
+          return link;
+        }
+        link = link?.next as ILinkNode<Player>;
+      }
+      // console.log('getFirstActionPlayerLink', link);
+        return link;
+      }
+    }
     // private readonly actionRoundComplete: () => void;
     // private readonly gameOverCallBack: () => void;
     // private readonly autoActionCallBack: (actionType: string, userId: string) => void;
@@ -347,26 +415,64 @@
     //   }
     // }
 
+    private isRemovedPlayer(position: string): boolean {
+      const length = this.removedPlayers.length;
+      if (length === 0) {
+        return false;
+      } else {
+        for (let i = 0; i < length; i++) {
+          if (this.removedPlayers[i].type === position) {
+            return true;
+          }
+        }
+        return false;
+      }
+    }
+
+    private getRemovedPlayerByPosition(position: string) {
+      const length = this.removedPlayers.length;
+      for (let i = 0; i < length; i++) {
+        if (this.removedPlayers[i].type === position) {
+          return this.removedPlayers[i];
+        }
+      }
+    }
+
     @Watch('actionUserId')
     private actionUserIdChange() {
-      // if (this.isPlay && this.actionEndTime) {
-      //   console.log('action player change-------', this.actionEndTime);
-      //   const now = Date.now();
-      //   this.time = Math.floor((this.actionEndTime - now) / 1000);
-      //   clearTimeout(this.timeSt);
-      //   this.doCountDown();
-      // }
       // 监听player信息的变化，同步到sit，从而实时显示画面
       let sitHead = this.sitLink;
       let playerHead = this.playerLink?.link;
+      // let playerHead = this.currPlayerNode;
+      if (playerHead) {
+        // console.log('sitHead', sitHead.node.player.type);
+        // console.log('playerHead', playerHead.node.type);
+        // console.log('playerSize', this.playerSize);
+        // console.log('removedPlayers', this.removedPlayers);
+      }
+      // 这里默认了sitLink和playerLink长度一致，都等于this.playerNum
       for (let i = 0; i < this.playerNum; i++) {
         if (sitHead && playerHead && playerHead.next) {
-          sitHead.node.player.counter = playerHead.node.counter;
-          sitHead.node.player.actionSize = playerHead.node.actionSize;
-          sitHead.node.player.actionCommand = playerHead.node.actionCommand;
-          sitHead.node.player.status = playerHead.node.status;
-          sitHead = sitHead.next;
-          playerHead = playerHead.next;
+          // sitHead永远是在UTG，因此在循环里，先判断sitHead对应的playerNode有没有被删除
+          const sitHeadPostion = sitHead.node.player.type;
+          // 如果被删除了
+          if (this.isRemovedPlayer(sitHeadPostion)) {
+            console.log('sitHead.node.player', sitHead.node.player);
+            const removedPlayer = this.getRemovedPlayerByPosition(sitHeadPostion);
+            console.log('removedPlayer', removedPlayer);
+            sitHead.node.player.counter = removedPlayer?.counter;
+            sitHead.node.player.actionSize = removedPlayer?.actionSize;
+            sitHead.node.player.actionCommand = removedPlayer?.actionCommand;
+            sitHead.node.player.status = removedPlayer?.status;
+            sitHead = sitHead.next;
+          } else { // 没被删除
+            sitHead.node.player.counter = playerHead.node.counter;
+            sitHead.node.player.actionSize = playerHead.node.actionSize;
+            sitHead.node.player.actionCommand = playerHead.node.actionCommand;
+            sitHead.node.player.status = playerHead.node.status;
+            sitHead = sitHead.next;
+            playerHead = playerHead.next;
+          }
         }
       }
     }
@@ -469,12 +575,18 @@
         let player: ILinkNode<Player>;
         while (playerLink.next) {
           player = playerLink.next;
+          // console.log(player.node.type);
           if (currPlayer.nickName === player.node.nickName) {
             const nextNext = playerLink.next.next;
             // player.next = null;
+            this.removedPlayers.push(playerLink.next.node);
             playerLink.next = nextNext;
             this.playerSize--;
             this.playerLink.link = playerLink;
+            // remove之后到BB -> remove之后到UTG+1
+            if (this.playerLink.link.next) {
+              this.playerLink.link = this.playerLink.link.next;
+            }
             return;
           }
           playerLink = playerLink.next;
@@ -488,10 +600,12 @@
       if (this.currPlayerNode?.next) {
         this.currPlayerNode = this.currPlayerNode?.next;
       }
+      console.log('currPlayerNode', this.currPlayerNode);
       // 通过index修改currPlayer
       if (this.currPlayerNode) {
          this.currIndex = this.currPlayerNode.node.position;
       }
+      console.log('currPlayer', this.currPlayer);
       // 更新actionUserId，从而实时显示
       // if (this.currPlayer) {
       //   this.actionUserId = this.currPlayer.nickName;
@@ -508,13 +622,18 @@
           const command = commands[0];
           let size = Number(commands[1]);
           if (command === ECommand.ALL_IN) {
-            console.log('counter', this.currPlayerNode.node.counter);
             // Counting player action size, if player's counter less than prevSize then use prevSize
             size = this.currPlayerNode.node.counter > this.prevSize ?
-              this.currPlayerNode.node.counter : this.prevSize;
+            this.currPlayerNode.node.counter : this.prevSize;
             this.currActionAllinPlayer.push(this.currPlayerNode.node);
+            if (this.currPlayer) {
+              // console.log(this.currPlayer);
+              this.currPlayer.actionSize = size;
+              this.currPlayer.counter -= size - this.currPlayer.inPot;
+            }
             this.removePlayer(this.currPlayerNode.node);
             this.pot += this.currPlayerNode.node.counter;
+            console.log(`${this.currPlayerNode.node.nickName} allin ${size} ${this.moneyType};\n`);
           }
           if (command === ECommand.CALL) {
             // size，下注量
@@ -522,17 +641,22 @@
             // actinSize,加注量
             const actionSize = this.currPlayerNode.node.actionSize >= 0 ? this.currPlayerNode.node.actionSize : 0;
             // console.log('call----------', actionSize);
-            console.log(`${this.currPlayerNode.node.nickName} calls ${size} ${this.moneyType};\n`);
             if (this.currPlayer) {
-              // this.currPlayerNode.node.counter -= size - actionSize;
-              // this.currPlayerNode.node.actionSize = size;
               this.currPlayer.actionSize = size;
               this.currPlayer.counter -= size - actionSize;
             }
             this.pot += size - actionSize;
+            console.log(`${this.currPlayerNode.node.nickName} calls ${size} ${this.moneyType};\n`);
           }
           if (command === ECommand.FOLD) {
+            // if (this.currPlayer) {
+            //   this.currPlayer.status = -1;
+            // }
+            this.currPlayerNode.node.actionCommand = 'fold';
+            this.currPlayerNode.node.status = -1;
+            this.currPlayerNode.node.actionSize = 0;
             this.removePlayer(this.currPlayerNode.node);
+            console.log(`${this.currPlayerNode.node.nickName} folds ;\n`);
           }
           if (command === ECommand.CHECK) {
             // prev player must be check
@@ -540,7 +664,7 @@
               ((this.currPlayerNode.node.type === EPlayerType.BIG_BLIND
                 || this.playerSize === 2 && this.currPlayerNode.node.type === EPlayerType.DEALER)
                 && this.prevSize === this.smallBlind * 2))) {
-              throw 'incorrect action: check';
+              throw new Error('incorrect action: check');
             }
             console.log(`${this.currPlayerNode.node.nickName} checks;\n`);
             // console.log(this.currPlayerNode.node.type === EPlayerType.BIG_BLIND
@@ -551,7 +675,7 @@
           if (command === ECommand.RAISE) {
             // counter not enough raise
             if (size < this.prevSize * 2) {
-              throw `incorrect action: raise ========= action size: ${this.currPlayerNode.node.actionSize}, prevSize: ${this.prevSize}`;
+              throw new Error(`incorrect action: raise ========= action size: ${this.currPlayerNode.node.actionSize}, prevSize: ${this.prevSize}`);
             }
             const prevActionSize = this.currPlayerNode.node.actionSize >= 0 ? this.currPlayerNode.node.actionSize : 0;
             this.pot += (size - prevActionSize);
@@ -575,14 +699,14 @@
               return;
             }
             this.prevSize = command === ECommand.FOLD ? this.prevSize : size;
-            console.log('prevSize:', this.prevSize);
+            // console.log('prevSize:', this.prevSize);
             this.nextPlayer();
             this.setCurrPlayerAction();
           } catch (e) {
-            throw 'action:' + e;
+            throw new Error('action:' + e);
           }
         } else {
-          throw 'incorrect action flow';
+          throw new Error('incorrect action flow');
         }
       }
       // this.nextPlayer();
@@ -672,7 +796,7 @@
       // left 1 player and not one allin player
       // left 1 player and current player allin, current counter small than prev player action size
       // left 1 player and has allin player, current player action size big than allin player action size
-      if (this.playerSize === 1
+        if (this.playerSize === 1
         && (this.currActionAllinPlayer.length === 0
           || (command === ECommand.ALL_IN
             && this.prevSize <= nextPlayer.actionSize
@@ -680,16 +804,16 @@
           || (command !== ECommand.ALL_IN && this.currPlayerNode.node.actionSize >= this.prevSize))) {
         return true;
       }
-      if (this.commonCard.length !== 0 && nextPlayer.actionSize === this.smallBlind * 2
+        if (this.commonCard.length !== 0 && nextPlayer.actionSize === this.smallBlind * 2
         && nextPlayer.actionSize === size && size === this.prevSize) {
         return true;
       }
-      if (nextPlayer.actionSize === this.prevSize
+        if (nextPlayer.actionSize === this.prevSize
         && (this.prevSize === this.currPlayerNode.node.actionSize || command === ECommand.FOLD)
         && this.prevSize !== this.smallBlind * 2 && this.prevSize !== 0) {
         return true;
       }
-      if (this.commonCard.length === 0
+        if (this.commonCard.length === 0
         && (nextPlayer.actionSize === this.smallBlind * 2 && this.prevSize === nextPlayer.actionSize)
         && (this.currPlayerNode.node.type === EPlayerType.BIG_BLIND
           || (this.allPlayer.length === 2 && this.currPlayerNode.node.type === EPlayerType.DEALER))
@@ -698,15 +822,15 @@
       }
         return false;
       }
-    
+
     }
 
     private actionComplete() {
       // action has allin, sum the allin player ev_pot
       if (this.currActionAllinPlayer.length !== 0) {
         let currAllinPlayerPot = 0;
-        this.currActionAllinPlayer.forEach(allinPlayer => {
-          this.allPlayer.forEach(p => {
+        this.currActionAllinPlayer.forEach((allinPlayer) => {
+          this.allPlayer.forEach((p) => {
             const actionSize = p.actionSize > 0 ? p.actionSize : 0;
             if (actionSize < allinPlayer.actionSize) {
               currAllinPlayerPot += actionSize;
@@ -803,7 +927,7 @@
           let j = 0;
           while (j < this.playerNum) {
             player = playerLink.node;
-            let card = this.poker.getCard();
+            const card = this.poker.getCard();
             player.setHandCard(card);
             if (playerLink.next) {
               playerLink = playerLink.next;
@@ -856,7 +980,7 @@
         this.setSate();
         return;
       }
-      throw 'error flow sendCard';
+      throw new Error('error flow sendCard');
     }
 
     private getMaxPlayers(lastPlayers: Player[]) {
@@ -865,7 +989,7 @@
         return this.compareCard(acc, cur) === 1 ? acc : cur;
       });
       // has many winner equal max player
-      lastPlayers.forEach(p => {
+      lastPlayers.forEach((p) => {
         if (this.compareCard(p, maxPlayer) === 0) {
           _maxPlayers.push(p);
         }
@@ -876,56 +1000,10 @@
     private getPlayerPokerStyle() {
       // test
       // this.commonCard = [ 'j4', 'k4', 'l4', 'm4', 'i4', ];
-      this.allPlayer.map(p => {
+      this.allPlayer.map((p) => {
         p.pokerStyle = new PokerStyle([ ...p.getHandCard(), ...this.commonCard ], this.isShort).getPokerWeight();
         return p;
       });
-    }
-
-    getWinner() {
-      if (this.currPlayerNode) {
-        // only one winner, other players fold
-        if (this.allInPlayers.length === 0 && this.playerSize === 1
-          || this.allInPlayers.length === 1 && this.playerSize === 0) {
-          console.log('only one player');
-          this.gameOverType = EGameOverType.GAME_OVER;
-          const winner = this.allInPlayers[0] || this.currPlayerNode.node;
-          this.status = EGameStatus.GAME_OVER;
-          this.winner.push([ winner ]);
-          return;
-        }
-        // game show down
-        while (this.status !== EGameStatus.GAME_SHOWDOWN) {
-          this.sendCard();
-          this.setSate();
-        }
-
-        this.status = EGameStatus.GAME_OVER;
-        this.gameOverType = EGameOverType.GAME_SHOWDOWN;
-
-        this.getPlayerPokerStyle();
-
-        /**
-         * The max player can't win all of pot, get the largest of the remaining players
-         * @param {Player[]} excludePlayers - exclude players
-         */
-        const getOtherWinner = (excludePlayers: Player[]) => {
-          // all player allin, winner can't get all pot
-          const allPlayer = this.getPlayers('all', excludePlayers);
-          // all player are exclude
-          if (allPlayer) {
-            if (allPlayer.length === 0) {
-              return;
-            }
-            const maxLastPlayer = this.getMaxPlayers(allPlayer);
-            this.winner.push(maxLastPlayer);
-            if (this.getLeftoverPot() > 0) {
-              getOtherWinner([ ...excludePlayers, ...maxLastPlayer ]);
-            }
-          };
-          getOtherWinner([]);
-          }
-      }
     }
 
     private getLeftoverPot() {
@@ -949,31 +1027,11 @@
           i++;
         }
         players = type === 'all' ? [ ...players, ...this.allInPlayers ] : players;
-        return excludePlayers ? players.filter(p => {
-          const isNotPlayer = excludePlayers.filter(excludePlayer => excludePlayer.userId === p.userId
+        return excludePlayers ? players.filter((p) => {
+          const isNotPlayer = excludePlayers.filter((excludePlayer) => excludePlayer.userId === p.userId
             || excludePlayer.evPot >= p.evPot);
           return isNotPlayer.length === 0;
         }) : players;
-      }
-    }
-
-    getFirstActionPlayer() {
-      if (this.playerLink) {
-        const player = this.allPlayer.filter(p => p.counter > 0
-        && p.position !== 0 && p.actionCommand !== 'fold' && p.type == 'SB')[0];
-      // console.log('getFirstActionPlayer-------player', player);
-      this.currIndex = player.position;
-      this.setCurrPlayerAction();
-      let link: ILinkNode<Player> | null = this.playerLink.link;
-      for (let i = 0; i < this.playerSize; i++) {
-        if (link?.node.nickName === player?.nickName) {
-          // console.log('getFirstActionPlayerLink', link);
-          return link;
-        }
-        link = link?.next as ILinkNode<Player>;
-      }
-      // console.log('getFirstActionPlayerLink', link);
-      return link;
       }
     }
 
@@ -1014,7 +1072,7 @@
 
     // ui的sync是需要actionUserId改变的，所以单纯clearPlayerAction不能实时同步到UI
     private clearPlayerAction() {
-      this.allPlayer.forEach(player => {
+      this.allPlayer.forEach((player) => {
         player.clearActionSize();
       });
       // this.setCurrPlayerAction();
@@ -1149,6 +1207,7 @@
       }
     }
     console.log('players:', this.players);
+    // console.log('playerLink:', this.playerLink);
   }
     // 记录
     private record() {

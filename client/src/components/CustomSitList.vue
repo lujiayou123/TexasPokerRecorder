@@ -64,18 +64,18 @@
             <div class="hand-card">
               <cardList :cardList="handCard"
                         :valueCards="valueCards"></cardList>
-              <div class="delay-time" v-show="time < 15 && sit.player.delayCount > 0
+              <!-- <div class="delay-time" v-show="time < 15 && sit.player.delayCount > 0
               && actionUserId === sit.player.userId" @click="delayTime">
                 <i class="iconfont icon-clock "></i>
                 <span>{{sit.player.delayCount}}</span>
-              </div>
+              </div> -->
             </div>
-            <div class="ready"
+            <!-- <div class="ready"
                  v-show="handCard && handCard.length === 0">ready
-            </div>
-            <div class="card-style"
+            </div> -->
+            <!-- <div class="card-style"
                  v-if="commonCard && commonCard.length > 0">{{PokeStyle()}}
-            </div>
+            </div> -->
           </div>
           <div class="win"
                v-show="sit.player.income">

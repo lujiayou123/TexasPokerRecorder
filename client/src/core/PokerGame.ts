@@ -581,7 +581,7 @@ export class PokerGame {
     this.allPlayer.forEach(player => {
       player.clearActionSize();
     });
-    
+
   }
 
   /**
@@ -599,7 +599,8 @@ export class PokerGame {
    * remove player from player link
    * @param {Player} currPlayer
    */
-  removePlayer(currPlayer: Player) {
+  // remove playerLink的同时也要remove sitLink
+  private removePlayer(currPlayer: Player) {
     let playerLink = this.playerLink.link;
     let player: ILinkNode<Player>;
     while (playerLink.next) {
