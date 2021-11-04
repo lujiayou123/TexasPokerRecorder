@@ -105,13 +105,13 @@
     private showBtn = true;
     private isError = false;
     private isShort = false;
-    private smallBlind = 1;
+    private smallBlind = 0.5;
     private showRoomConfig = false;
     // 游戏设置
     private showGameconfig = false;
     // 人数
     private playerNum = 9;
-    private moneyType = '￥';
+    private moneyType = 'bb';
     private showRecord = false;
     private commandList = [];
     private currGameIndex = 0;

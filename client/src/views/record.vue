@@ -287,7 +287,7 @@
     private handInfo: string[] = [];
     private moneyType: string = '$';
     private playerNum: number = 9;
-    private smallBlind: number = 1;
+    private smallBlind: number = 0.5;
     private isPreflop: boolean = true;
     private isPostflop: boolean = false;
     private board = [];
@@ -364,8 +364,14 @@
 
     public getFirstActionPlayer() {
       if (this.playerLink) {
-        const player = this.allPlayer.filter((p) => p.counter > 0
+        let player;
+        if (this.playerSize === 1) {
+          player = this.allPlayer.filter((p) => p.counter > 0
+        && p.position !== 0 && p.actionCommand !== 'fold')[0];
+        } else {
+          player = this.allPlayer.filter((p) => p.counter > 0
         && p.position !== 0 && p.actionCommand !== 'fold' && p.type === 'SB')[0];
+        }
       // console.log('getFirstActionPlayer-------player', player);
         this.currIndex = player.position;
         this.setCurrPlayerAction();
