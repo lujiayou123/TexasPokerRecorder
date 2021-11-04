@@ -152,7 +152,7 @@ export class Player {
     }
 
     if (command === ECommand.CALL) {
-      console.log('player: call----------------', prevSize, this.actionSize);
+      // console.log('player: call----------------', prevSize, this.actionSize);
       const actionSize = this.actionSize >= 0 ? this.actionSize : 0;
       size = prevSize - actionSize;
     }

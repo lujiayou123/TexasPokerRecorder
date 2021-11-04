@@ -470,36 +470,55 @@
       let sitHead = this.sitLink;
       let playerHead = this.playerLink?.link;
       // let playerHead = this.currPlayerNode;
-      if (playerHead) {
-        // console.log('sitHead', sitHead.node.player.type);
-        // console.log('playerHead', playerHead.node.type);
-        // console.log('playerSize', this.playerSize);
-        // console.log('removedPlayers', this.removedPlayers);
-      }
+      // if (playerHead) {
+      //   console.log('sitHead', sitHead.node.player.type);
+      //   console.log('playerHead', playerHead.node.type);
+      //   console.log('playerSize', this.playerSize);
+      //   console.log('removedPlayers', this.removedPlayers);
+      // }
       // 这里默认了sitLink和playerLink长度一致，都等于this.playerNum
       for (let i = 0; i < this.playerNum; i++) {
         if (sitHead && playerHead && playerHead.next) {
           // sitHead永远是在UTG，因此在循环里，先判断sitHead对应的playerNode有没有被删除
           const sitHeadPostion = sitHead.node.player.type;
+          // console.log('sitHeadPostion:', sitHeadPostion);
           // 如果被删除了
           if (this.isRemovedPlayer(sitHeadPostion)) {
+            // console.log(sitHeadPostion + 'has been removed');
             // console.log('sitHead.node.player', sitHead.node.player);
             const removedPlayer = this.getRemovedPlayerByPosition(sitHeadPostion);
             // console.log('removedPlayer', removedPlayer);
+            // console.log('sitHead', sitHead);
             sitHead.node.player.counter = removedPlayer?.counter;
             sitHead.node.player.actionSize = removedPlayer?.actionSize;
             sitHead.node.player.actionCommand = removedPlayer?.actionCommand;
             sitHead.node.player.status = removedPlayer?.status;
             sitHead = sitHead.next;
           } else { // 没被删除
-            sitHead.node.player.counter = playerHead.node.counter;
-            sitHead.node.player.actionSize = playerHead.node.actionSize;
-            sitHead.node.player.actionCommand = playerHead.node.actionCommand;
-            sitHead.node.player.status = playerHead.node.status;
-            sitHead = sitHead.next;
-            playerHead = playerHead.next;
+          // 如果UTG call, UTG+1 fold
+          // 此时sitHead在UTG，而PlayerHead在MP
+          // 也就是说此处没有确保sitHead和playerHead同步
+              for (let i = 0; i < this.playerSize; i++) {
+                if (playerHead) {
+                  // sitHead和playerHead同步
+                  if (sitHead.node.player.type === playerHead.node.type) {
+                    sitHead.node.player.counter = playerHead.node.counter;
+                    sitHead.node.player.actionSize = playerHead.node.actionSize;
+                    sitHead.node.player.actionCommand = playerHead.node.actionCommand;
+                    sitHead.node.player.status = playerHead.node.status;
+                    sitHead = sitHead.next;
+                    if (playerHead.next) {
+                      playerHead = playerHead.next;
+                    }
+                  } else {
+                    if (playerHead.next) {
+                      playerHead = playerHead.next;
+                    }
+                  }
+                }
+              }
+            }
           }
-        }
       }
     }
 
@@ -682,6 +701,7 @@
             this.currPlayerNode.node.status = -1;
             this.currPlayerNode.node.actionSize = 0;
             this.removePlayer(this.currPlayerNode.node);
+            // console.log('this.playerLink?.link', this.playerLink?.link);
             console.log(`${this.currPlayerNode.node.nickName} folds ;\n`);
           }
           if (command === ECommand.CHECK) {
