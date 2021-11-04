@@ -253,9 +253,13 @@
         1: 'UTG', 2: 'UTG+1', 3: 'MP', 4: 'LJ', 5: 'HJ',
         6: 'CO', 7: 'BTN', 8: 'SB', 9: 'BB',
       };
-    private postflopActionOrder: { [key: number]: string; } = {
-        1: 'SB', 2: 'BB', 3: 'UTG', 4: 'UTG+1', 5: 'MP',
-        6: 'LJ', 7: 'HJ', 8: 'CO', 9: 'BTN',
+    // private postflopActionOrder: { [key: number]: string; } = {
+    //     1: 'SB', 2: 'BB', 3: 'UTG', 4: 'UTG+1', 5: 'MP',
+    //     6: 'LJ', 7: 'HJ', 8: 'CO', 9: 'BTN',
+    //   };
+    private postflopActionOrder: { [key: string]: number; } = {
+        SB: 1, BB: 2, UTG: 3, 'UTG+1': 4, MP: 5,
+        LJ: 6, HJ: 7, CO: 8, BTN: 9,
       };
 
     private joinMsg = '';
@@ -362,27 +366,43 @@
       }
     }
 
+    private getPostFlopFirstActionPlayer(leftPlayers: Player[]): Player{
+      let min = this.postflopActionOrder[leftPlayers[0].type];
+      let firstPlayer = leftPlayers[0];
+      // 循环找到firstPlayer
+      for (let player of leftPlayers) {
+        let val = this.postflopActionOrder[player.type]
+        if (val <= min) {
+          min = val;
+          firstPlayer = player;
+        }
+      }
+      return firstPlayer;
+    }
+
     public getFirstActionPlayer() {
       if (this.playerLink) {
         let player;
         if (this.playerSize === 1) {
-          player = this.allPlayer.filter((p) => p.counter > 0
-        && p.position !== 0 && p.actionCommand !== 'fold')[0];
+          player = this.allPlayer.filter((p) => p.counter > 0 && p.actionCommand !== 'fold')[0];
         } else {
-          player = this.allPlayer.filter((p) => p.counter > 0
-        && p.position !== 0 && p.actionCommand !== 'fold' && p.type === 'SB')[0];
+          const leftPlayers = this.allPlayer.filter((p) => p.counter > 0 
+            && p.actionCommand !== 'fold');
+          player = this.getPostFlopFirstActionPlayer(leftPlayers);
         }
-      // console.log('getFirstActionPlayer-------player', player);
+        // console.log('getFirstActionPlayer-------player', player);
         this.currIndex = player.position;
         this.setCurrPlayerAction();
+        // console.log('currIndex:', this.currIndex);
+        // console.log('postFlop first Player:', player);
         let link: ILinkNode<Player> | null = this.playerLink.link;
         for (let i = 0; i < this.playerSize; i++) {
-        if (link?.node.nickName === player?.nickName) {
-          // console.log('getFirstActionPlayerLink', link);
-          return link;
+          if (link?.node.nickName === player?.nickName) {
+            // console.log('getFirstActionPlayerLink', link);
+            return link;
+          }
+          link = link?.next as ILinkNode<Player>;
         }
-        link = link?.next as ILinkNode<Player>;
-      }
       // console.log('getFirstActionPlayerLink', link);
         return link;
       }
@@ -463,9 +483,9 @@
           const sitHeadPostion = sitHead.node.player.type;
           // 如果被删除了
           if (this.isRemovedPlayer(sitHeadPostion)) {
-            console.log('sitHead.node.player', sitHead.node.player);
+            // console.log('sitHead.node.player', sitHead.node.player);
             const removedPlayer = this.getRemovedPlayerByPosition(sitHeadPostion);
-            console.log('removedPlayer', removedPlayer);
+            // console.log('removedPlayer', removedPlayer);
             sitHead.node.player.counter = removedPlayer?.counter;
             sitHead.node.player.actionSize = removedPlayer?.actionSize;
             sitHead.node.player.actionCommand = removedPlayer?.actionCommand;
@@ -606,12 +626,12 @@
       if (this.currPlayerNode?.next) {
         this.currPlayerNode = this.currPlayerNode?.next;
       }
-      console.log('currPlayerNode', this.currPlayerNode);
+      // console.log('currPlayerNode', this.currPlayerNode);
       // 通过index修改currPlayer
       if (this.currPlayerNode) {
          this.currIndex = this.currPlayerNode.node.position;
       }
-      console.log('currPlayer', this.currPlayer);
+      // console.log('currPlayer', this.currPlayer);
       // 更新actionUserId，从而实时显示
       // if (this.currPlayer) {
       //   this.actionUserId = this.currPlayer.nickName;
