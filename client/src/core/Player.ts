@@ -161,7 +161,7 @@ export class Player {
     }
 
     if (command === ECommand.ALL_IN) {
-      console.log('allin================', this.counter);
+      // console.log('allin================', this.counter);
       size = this.counter;
     }
 

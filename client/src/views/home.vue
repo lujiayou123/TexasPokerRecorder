@@ -111,7 +111,7 @@
     private showGameconfig = false;
     // 人数
     private playerNum = 9;
-    private moneyType = 'bb';
+    private moneyType = '$';
     private showRecord = false;
     private commandList = [];
     private currGameIndex = 0;

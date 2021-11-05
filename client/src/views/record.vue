@@ -100,6 +100,7 @@
   import { EPlayerType, Player, IPlayer } from '../core/Player';
   import fastClick from 'fastclick';
   import Timeout = NodeJS.Timeout;
+  import { Console } from 'console';
 
   interface IPokerGame {
     users: Player[];
@@ -319,6 +320,8 @@
     private isShort: boolean = false;
     private refreshSitList: number = 0;
     private removedPlayers: Player[] = [];
+    private Hero: any = '';
+    private SummarySeatInfo: string[] = [];
 
     public getWinner() {
       if (this.currPlayerNode) {
@@ -342,6 +345,28 @@
         this.gameOverType = EGameOverType.GAME_SHOWDOWN;
 
         this.getPlayerPokerStyle();
+        // console.log(this.allPlayer);
+        // 找出最大牌型
+        let maxPokerStyle = this.allPlayer[0].pokerStyle;
+        for (let i = 0; i < this.playerNum; i ++) {
+          if (this.allPlayer[i].status === -1 || this.allPlayer[i].actionCommand === 'fold') {
+            continue;
+          } else {
+            if (this.allPlayer[i].pokerStyle >= maxPokerStyle) {
+              maxPokerStyle = this.allPlayer[i].pokerStyle;
+            }
+          }
+        }
+        // 找出牌力等于最大牌型的玩家，加入winner
+        for (let i = 0; i < this.playerNum; i ++) {
+          if (this.allPlayer[i].status === -1 || this.allPlayer[i].actionCommand === 'fold') {
+            continue;
+          } else {
+            if (this.allPlayer[i].pokerStyle >= maxPokerStyle) {
+              this.winner.push([this.allPlayer[i]]);
+            }
+          }
+        }
 
         /**
          * The max player can't win all of pot, get the largest of the remaining players
@@ -386,10 +411,19 @@
         if (this.playerSize === 1) {
           player = this.allPlayer.filter((p) => p.counter > 0 && p.actionCommand !== 'fold')[0];
         } else {
+          // console.log('qqq');
           const leftPlayers = this.allPlayer.filter((p) => p.counter > 0
             && p.actionCommand !== 'fold');
-          player = this.getPostFlopFirstActionPlayer(leftPlayers);
+          // console.log(leftPlayers);
+          if (leftPlayers.length > 0) {
+            player = this.getPostFlopFirstActionPlayer(leftPlayers);
+          } else { // 全都allin了
+            this.currIndex = -1;
+            this.setCurrPlayerAction();
+            return this.playerLink.link;
+          }
         }
+        // console.log('ppp');
         // console.log('getFirstActionPlayer-------player', player);
         this.currIndex = player.position;
         this.setCurrPlayerAction();
@@ -584,6 +618,8 @@
             this.playerSize--;
             this.playerLink.link = playerLink;
             // remove之后到BB -> remove之后到UTG+1
+            // console.log(this.playerSize);
+            // console.log(this.playerLink.link);
             if (this.playerLink.link.next) {
               this.playerLink.link = this.playerLink.link.next;
             }
@@ -626,14 +662,14 @@
             size = this.currPlayerNode.node.counter > this.prevSize ?
             this.currPlayerNode.node.counter : this.prevSize;
             this.currActionAllinPlayer.push(this.currPlayerNode.node);
-            if (this.currPlayer) {
-              // console.log(this.currPlayer);
-              this.currPlayer.actionSize = size;
-              this.currPlayer.counter -= size - this.currPlayer.inPot;
-            }
+            // if (this.currPlayer) {
+            //   // console.log(this.currPlayer);
+            //   this.currPlayer.actionSize = size;
+            //   this.currPlayer.counter -= size - this.currPlayer.inPot;
+            // }
             this.removePlayer(this.currPlayerNode.node);
             this.pot += this.currPlayerNode.node.counter;
-            console.log(`${this.currPlayerNode.node.nickName} allin ${size} ${this.moneyType};\n`);
+            console.log(`${this.currPlayerNode.node.nickName}: allin ${size}${this.moneyType}\n`);
           }
           if (command === ECommand.CALL) {
             // size，下注量
@@ -646,7 +682,9 @@
               this.currPlayer.counter -= size - actionSize;
             }
             this.pot += size - actionSize;
-            console.log(`${this.currPlayerNode.node.nickName} calls ${size} ${this.moneyType};\n`);
+            const callInfo = `${this.currPlayerNode.node.nickName}: calls ${size}${this.moneyType}\n`;
+            this.handInfo.push(callInfo);
+            console.log(callInfo);
           }
           if (command === ECommand.FOLD) {
             // if (this.currPlayer) {
@@ -657,7 +695,31 @@
             this.currPlayerNode.node.actionSize = 0;
             this.removePlayer(this.currPlayerNode.node);
             // console.log('this.playerLink?.link', this.playerLink?.link);
-            console.log(`${this.currPlayerNode.node.nickName} folds ;\n`);
+            const foldInfo = `${this.currPlayerNode.node.nickName}: folds\n`;
+            this.handInfo.push(foldInfo);
+            // 最后的Summary
+            let summarySeatInfo;
+            // if (this.status === EGameStatus.GAME_START) {
+            // }
+            if (this.currPlayerNode.node.inPot <= 0) {
+              if (this.currPlayerNode.node.type === 'BTN') {
+                summarySeatInfo = `Seat ${this.currPlayerNode.node.position + 1}: ${this.currPlayerNode.node.nickName} (button) folded before Flop (didn't bet)\n`;
+              } else {
+                summarySeatInfo = `Seat ${this.currPlayerNode.node.position + 1}: ${this.currPlayerNode.node.nickName} folded before Flop (didn't bet)\n`;
+              }
+            } else {
+              if (this.currPlayerNode.node.type === 'BTN') {
+                summarySeatInfo = `Seat ${this.currPlayerNode.node.position + 1}: ${this.currPlayerNode.node.nickName} (button) folded before Flop\n`;
+              } else if (this.currPlayerNode.node.type === 'SB') {
+                summarySeatInfo = `Seat ${this.currPlayerNode.node.position + 1}: ${this.currPlayerNode.node.nickName} (small blind) folded before Flop\n`;
+              } else if (this.currPlayerNode.node.type === 'BB') {
+                summarySeatInfo = `Seat ${this.currPlayerNode.node.position + 1}: ${this.currPlayerNode.node.nickName} (big blind) folded before Flop\n`;
+              } else {
+                summarySeatInfo = `Seat ${this.currPlayerNode.node.position + 1}: ${this.currPlayerNode.node.nickName} folded before Flop\n`;
+              }
+            }
+            this.SummarySeatInfo.push(summarySeatInfo);
+            console.log(foldInfo);
           }
           if (command === ECommand.CHECK) {
             // prev player must be check
@@ -667,7 +729,9 @@
                 && this.prevSize === this.smallBlind * 2))) {
               throw new Error('incorrect action: check');
             }
-            console.log(`${this.currPlayerNode.node.nickName} checks;\n`);
+            const checkInfo = `${this.currPlayerNode.node.nickName}: checks\n`;
+            this.handInfo.push(checkInfo);
+            console.log(checkInfo);
             // console.log(this.currPlayerNode.node.type === EPlayerType.BIG_BLIND
             //   && this.prevSize === this.smallBlind * 2, 'big blind', this.currPlayerNode);
             // ???
@@ -685,7 +749,14 @@
               this.currPlayer.counter -= size - prevActionSize;
             }
             this.pot += (size - prevActionSize);
-            console.log(`${this.currPlayerNode.node.nickName} raises ${size - prevActionSize - this.prevSize}${this.moneyType} to ${size - prevActionSize}${this.moneyType};\n`);
+            let raiseInfo;
+            if (this.prevSize === 0) {
+              raiseInfo = `${this.currPlayerNode.node.nickName}: bets ${size - prevActionSize}${this.moneyType}\n`;
+            } else {
+              raiseInfo = `${this.currPlayerNode.node.nickName}: raises ${size - prevActionSize - this.prevSize}${this.moneyType} to ${size - prevActionSize}${this.moneyType}\n`;
+            }
+            this.handInfo.push(raiseInfo);
+            console.log(raiseInfo);
           }
           try {
             // clearTimeout(this.actionTimeOut);
@@ -722,6 +793,10 @@
         }
       }
       // this.nextPlayer();
+    }
+
+    private sortSummarySeatInfo() {
+      console.log(this.SummarySeatInfo);
     }
 
     private isActionComplete(command: any, nextPlayer: Player, size: number) {
@@ -764,6 +839,7 @@
     private actionComplete() {
       // action has allin, sum the allin player ev_pot
       if (this.currActionAllinPlayer.length !== 0) {
+        // console.log('allin players:', this.currActionAllinPlayer.length);
         let currAllinPlayerPot = 0;
         this.currActionAllinPlayer.forEach((allinPlayer) => {
           this.allPlayer.forEach((p) => {
@@ -789,16 +865,20 @@
             this.slidePots.push(p.evPot - this.allInPlayers[key - 1].evPot);
           }
         });
+        // console.log('break point0');
       }
       // action complete clear player actionSize = 0
       this.clearPlayerAction();
+      // console.log('break point1');
       this.currActionAllinPlayer = [];
       this.prevSize = 0;
       this.prevPot = this.pot;
       // new action ring first action is sb
       this.currPlayerNode = this.getFirstActionPlayer();
+      // console.log('break point2');
       this.setSate();
-      console.log(this.playerSize, 'playerS-------3', this.playerLink);
+      // console.log('break point3');
+      // console.log(this.playerSize, 'playerS-------3', this.playerLink);
       if (this.status === EGameStatus.GAME_SHOWDOWN || this.playerSize <= 1) {
         setTimeout(() => {
           this.pokerGameOver();
@@ -806,7 +886,7 @@
       }
       // action round complete, start auto action interval
       if (this.status < EGameStatus.GAME_SHOWDOWN && this.playerSize > 1) {
-        this.actionEndTime = Date.now() + ACTION_TIME;
+        // this.actionEndTime = Date.now() + ACTION_TIME;
         this.sendCard();
         // this.startActionRound();
         this.setCurrPlayerAction();
@@ -836,6 +916,8 @@
             winner.setIncome(income);
           }
           console.log('winner----------', winnerList, roundPotCount, pot, leftPot);
+          const winnerInfo = `${winnerList[0].nickName} collected ${this.moneyType}${pot} from pot\n`;
+          this.handInfo.push(winnerInfo);
         });
       });
     }
@@ -851,6 +933,11 @@
       this.counting();
       // this.initPlayer();
       // this.gameOverCallBack();
+      // console.log('winner', this.winner);
+
+      // console.log('allPlayer', this.allPlayer);
+      this.Summary();
+      this.logHandInfo();
     }
 
     private setHandCard() {
@@ -907,13 +994,32 @@
           this.commonCard.push(this.poker.getCard());
         }
         this.setSate();
+        // FLOP
+        const flopInfoFlag = `*** FLOP *** [${this.decodeHandCard(this.commonCard[0])} ${this.decodeHandCard(this.commonCard[1])} ${this.decodeHandCard(this.commonCard[2])}]\n`;
+        this.handInfo.push(flopInfoFlag);
+        console.log(flopInfoFlag);
         return;
       }
-      if (this.status === EGameStatus.GAME_TURN || this.status === EGameStatus.GAME_RIVER) {
+      if (this.status === EGameStatus.GAME_TURN) {
         // fire card
         this.poker.getCard();
         this.commonCard.push(this.poker.getCard());
         this.setSate();
+        // TURN
+        const turnInfoFlag = `*** TURN *** [${this.decodeHandCard(this.commonCard[0])} ${this.decodeHandCard(this.commonCard[1])} ${this.decodeHandCard(this.commonCard[2])}] [${this.decodeHandCard(this.commonCard[3])}]\n`;
+        this.handInfo.push(turnInfoFlag);
+        console.log(turnInfoFlag);
+        return;
+      }
+      if (this.status === EGameStatus.GAME_RIVER) {
+        // fire card
+        this.poker.getCard();
+        this.commonCard.push(this.poker.getCard());
+        this.setSate();
+        // TURN
+        const riverInfoFlag = `*** RIVER *** [${this.decodeHandCard(this.commonCard[0])} ${this.decodeHandCard(this.commonCard[1])} ${this.decodeHandCard(this.commonCard[2])} ${this.decodeHandCard(this.commonCard[3])}] [${this.decodeHandCard(this.commonCard[4])}]\n`;
+        this.handInfo.push(riverInfoFlag);
+        console.log(riverInfoFlag);
         return;
       }
       throw new Error('error flow sendCard');
@@ -1168,9 +1274,80 @@
         this.currIndex = this.currPlayerNode.node.position;
       }
       // console.log('currPlayer', this.currPlayer);
-
       this.sendCard();
       this.setCurrPlayerAction();
+      this.setPreFlopInfo();
+    }
+
+    private setPreFlopInfo() {
+      const now = new Date();
+      const year = now.getFullYear(); // 得到年份
+      const month = now.getMonth(); // 得到月份
+      const day = now.getDate(); // 得到日期
+      const hour = now.getHours(); // 得到小时数
+      const minute = now.getMinutes(); // 得到分钟数
+      const second = now.getSeconds(); // 得到秒数
+      const handId = this.getRandomNumber(9);
+      const tableId = this.getRandomNumber(7);
+      const platformInfo = `PokerStars Zoom Hand #${handId}: Hold'em No Limit  (${this.moneyType}${this.smallBlind}/${this.moneyType}${this.smallBlind * 2}) - ${year}/${month}/${day} ${hour}:${minute}:${second}\n`;
+      this.handInfo.push(platformInfo);
+      const tableInfo = `Table 'RushAndCash${tableId}' ${this.playerNum}-max Seat #${this.playerNum - 2} is the button\n`;
+      this.handInfo.push(tableInfo);
+      let seatInfo;
+      let sitHead = this.sitLink;
+      console.log(platformInfo);
+      console.log(tableInfo);
+      for (let i = 0; i < this.playerNum; i++) {
+        if (sitHead.node.player.nickName === 'Hero') {
+          this.Hero = sitHead.node.player;
+        }
+        seatInfo = `Seat ${sitHead.node.position + 1}: ${sitHead.node.player.nickName} (${this.moneyType}${sitHead.node.player.counter} in chips)\n`;
+        this.handInfo.push(seatInfo);
+        console.log(seatInfo);
+        sitHead = sitHead.next;
+      }
+      const smallBlindInfo = `${this.SBPlayer?.nickName}: posts small blind ${this.moneyType}${this.smallBlind}\n`;
+      this.handInfo.push(smallBlindInfo);
+      const bigBlindInfo = `${this.BBPlayer?.nickName}: posts big blind ${this.moneyType}${this.smallBlind * 2}\n`;
+      this.handInfo.push(bigBlindInfo);
+      // console.log(this.SBPlayer);
+      // console.log(this.BBPlayer);
+      console.log(smallBlindInfo);
+      console.log(bigBlindInfo);
+      const preFlopFlag = `*** HOLE CARDS ***\n`;
+      this.handInfo.push(preFlopFlag);
+      console.log(preFlopFlag);
+      const heroHandCardInfo = `Dealt to Hero [${this.decodeHandCard(this.Hero.handCard[0])} ${this.decodeHandCard(this.Hero.handCard[1])}]`;
+      this.handInfo.push(heroHandCardInfo);
+      console.log(heroHandCardInfo);
+      // console.log(this.Hero.handCard);
+    }
+
+    private Summary() {
+      const summaryFlag = `*** SUMMARY ***\n`;
+      this.handInfo.push(summaryFlag);
+      const potInfo = `Total pot ${this.moneyType}${this.pot} | Rake ${this.moneyType}0 | Jackpot ${this.moneyType}0 | Bingo ${this.moneyType}0 | Rake ${this.moneyType}0\n`;
+      this.handInfo.push(potInfo);
+      const boardInfo = `Board [${this.decodeHandCard(this.commonCard[0])} ${this.decodeHandCard(this.commonCard[1])} ${this.decodeHandCard(this.commonCard[2])} ${this.decodeHandCard(this.commonCard[3])} ${this.decodeHandCard(this.commonCard[4])}]\n`;
+      this.handInfo.push(boardInfo);
+      this.sortSummarySeatInfo();
+      for (let i = 0; i < this.playerNum; i++) {
+        this.handInfo.push(this.SummarySeatInfo[i]);
+      }
+    }
+
+    private decodeHandCard(handCard: string): string {
+      const cardDict: { [key: string]: string; } = {
+        a: '2', b: '3', c: '4', d: '5', e: '6', f: '7', g: '8', h: '9', i: 'T', j: 'J', k: 'Q', l: 'K', m: 'A',
+      };
+      const colorDict: { [key: string]: string; } = {
+        1: 'd', 2: 'c', 3: 'h', 4: 's',
+      };
+      let card = '';
+      if (handCard.length === 2) {
+        card = cardDict[handCard[0]] + colorDict[handCard[1]];
+      }
+      return card;
     }
 
     private setCurrPlayerAction() {
@@ -1201,6 +1378,15 @@
         i++;
       }
       return linkNode;
+    }
+
+    private getRandomNumber(length: number): string {
+      const str = '123456789';
+      let randomNumber = '';
+      for (let i = length; i > 0; --i) {
+        randomNumber += str[Math.floor(Math.random() * str.length)];
+      }
+      return randomNumber;
     }
 
     private getRandomId(length: number): string {
@@ -1258,26 +1444,47 @@
     }
     private initSitLink() {
       // this.prevSize = this.smallBlind * 2;
+      // 0~9的随机数
+      const heroSeed = Math.floor(Math.random() * 9);
       const sb = this.smallBlind;
       const bb = 2 * sb;
       const sitListMap = this.sitList || [];
       if (sitListMap.length === 0) {
         for (let i = 0; i < 9; i++) {
-          const sit = {
-            player: {
-              counter: this.counterDict(i + 1),
-              nickName: this.getRandomId(8),
-              type: this.positionDict[i + 1],
-              // actionSize: this.blindDict(this.positionDict[i + 1]),
-              actionSize: 0,
-              actionCommand: '',
-              buyIn: 1000 * bb,
-              status: 1,
-              isSit: true,
-              delayCount: 999,
-            },
-            position: i,
-          };
+          let sit;
+          if (i === heroSeed) {
+            sit = {
+              player: {
+                counter: this.counterDict(i + 1),
+                nickName: 'Hero',
+                type: this.positionDict[i + 1],
+                // actionSize: this.blindDict(this.positionDict[i + 1]),
+                actionSize: 0,
+                actionCommand: '',
+                buyIn: 1000 * bb,
+                status: 1,
+                isSit: true,
+                delayCount: 999,
+              },
+              position: i,
+            };
+          } else {
+              sit = {
+                player: {
+                  counter: this.counterDict(i + 1),
+                  nickName: this.getRandomId(8),
+                  type: this.positionDict[i + 1],
+                  // actionSize: this.blindDict(this.positionDict[i + 1]),
+                  actionSize: 0,
+                  actionCommand: '',
+                  buyIn: 1000 * bb,
+                  status: 1,
+                  isSit: true,
+                  delayCount: 999,
+                },
+                position: i,
+              };
+            }
           sitListMap.push(sit);
         }
       }

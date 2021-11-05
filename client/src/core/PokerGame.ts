@@ -134,7 +134,7 @@ export class PokerGame {
   /**
    * Get game winner
    */
-  getWinner() {
+  private getWinner() {
     // only one winner, other players fold
     if (this.allInPlayers.length === 0 && this.playerSize === 1
       || this.allInPlayers.length === 1 && this.playerSize === 0) {
@@ -265,7 +265,7 @@ export class PokerGame {
    * if small blind is already fold, then next in the game player
    * @returns {ILinkNode<Player>}
    */
-  getFirstActionPlayer() {
+  private getFirstActionPlayer() {
     const player = this.allPlayer.filter(p => p.counter > 0
       && p.position !== 0 && p.actionCommand !== 'fold')[0];
     console.log('getFirstActionPlayer-------player', player);
