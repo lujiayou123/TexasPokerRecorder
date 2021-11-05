@@ -108,6 +108,8 @@ export class Player {
    * @example action('command:raise:10')
    */
   public action(commandString: string, prevSize: number = 0) {
+    console.log('commandString', commandString);
+    console.log('prevSize', prevSize);
     const commandArr = commandString.split(':');
     const command = commandArr[0];
     const raiseSize = Number(commandArr[1]);
@@ -136,9 +138,10 @@ export class Player {
 
     // player raise,get the raise size
     if (command === ECommand.RAISE) {
+      // console.log('R');
       // raise must double to prevSize
       if (raiseSize >= prevSize * 2) {
-        console.log('player: RAISE----------------', prevSize, this.actionSize);
+        // console.log('player: RAISE----------------', prevSize, this.actionSize);
         const actionSize = this.actionSize >= 0 ? this.actionSize : 0;
         size = raiseSize - actionSize;
       } else {

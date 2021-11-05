@@ -105,7 +105,7 @@
     users: Player[];
     smallBlind: number;
     isShort: boolean;
-    actionRoundComplete: () => void;
+    // actionRoundComplete: () => void;
     gameOverCallBack: () => void;
     autoActionCallBack: (actionType: string, userId: string) => void;
   }
@@ -258,8 +258,8 @@
     //     6: 'LJ', 7: 'HJ', 8: 'CO', 9: 'BTN',
     //   };
     private postflopActionOrder: { [key: string]: number; } = {
-        SB: 1, BB: 2, UTG: 3, 'UTG+1': 4, MP: 5,
-        LJ: 6, HJ: 7, CO: 8, BTN: 9,
+        'SB': 1, 'BB': 2, 'UTG': 3, 'UTG+1': 4, 'MP': 5,
+        'LJ': 6, 'HJ': 7, 'CO': 8, 'BTN': 9,
       };
 
     private joinMsg = '';
@@ -366,12 +366,12 @@
       }
     }
 
-    private getPostFlopFirstActionPlayer(leftPlayers: Player[]): Player{
+    private getPostFlopFirstActionPlayer(leftPlayers: Player[]): Player {
       let min = this.postflopActionOrder[leftPlayers[0].type];
       let firstPlayer = leftPlayers[0];
       // 循环找到firstPlayer
-      for (let player of leftPlayers) {
-        let val = this.postflopActionOrder[player.type]
+      for (const player of leftPlayers) {
+        const val = this.postflopActionOrder[player.type];
         if (val <= min) {
           min = val;
           firstPlayer = player;
@@ -380,13 +380,13 @@
       return firstPlayer;
     }
 
-    public getFirstActionPlayer() {
+    private getFirstActionPlayer() {
       if (this.playerLink) {
         let player;
         if (this.playerSize === 1) {
           player = this.allPlayer.filter((p) => p.counter > 0 && p.actionCommand !== 'fold')[0];
         } else {
-          const leftPlayers = this.allPlayer.filter((p) => p.counter > 0 
+          const leftPlayers = this.allPlayer.filter((p) => p.counter > 0
             && p.actionCommand !== 'fold');
           player = this.getPostFlopFirstActionPlayer(leftPlayers);
         }
@@ -407,39 +407,6 @@
         return link;
       }
     }
-    // private readonly actionRoundComplete: () => void;
-    // private readonly gameOverCallBack: () => void;
-    // private readonly autoActionCallBack: (actionType: string, userId: string) => void;
-
-    // @Watch('players')
-    // private playerChange(players: Player[]) {
-    //   console.log('player change-------');
-    //   this.sitList = this.sitList.map((sit: ISit) => {
-    //     const player = players.find(
-    //       (p) => sit.player && p.userId === sit.player.userId && sit.player.counter > 0);
-    //     return Object.assign({}, {}, { player, position: sit.position }) as ISit;
-    //   });
-    //   this.initSitLink();
-    // }
-
-    // @Watch('isPlay')
-    // private isPlayChange(val: boolean) {
-    //   if (val) {
-    //     clearTimeout(this.timeSt);
-    //     this.doCountDown();
-    //   }
-    // }
-
-    // @Watch('currIndex')
-    // private isCurrIndexChange(val: number) {
-    //   if (val) {
-    //     console.log('currIndex Change to:', val);
-    //     this.currPosition = this.positionDict[val];
-    //     console.log('currPosition:', this.currPosition);
-    //     console.log('currPlayer:', this.currPlayer);
-    //     // 如果val到10，且没有结束行动
-    //   }
-    // }
 
     private isRemovedPlayer(position: string): boolean {
       const length = this.removedPlayers.length;
@@ -462,6 +429,11 @@
           return this.removedPlayers[i];
         }
       }
+    }
+
+    @Watch('actionRoundComplete')
+    private actionRoundCompleteChange() {
+      this.actionUserIdChange();
     }
 
     @Watch('actionUserId')
@@ -521,24 +493,6 @@
           }
       }
     }
-
-    // @Watch('playerLink')
-    // // 监听player信息的变化，同步到sit，从而实时显示画面
-    // private playerLinkSyncSitLink() {
-    //   console.log('playerLinkChange');
-    //   let sitHead = this.sitLink;
-    //   let playerHead = this.playerLink?.link;
-    //   for (let i = 0; i < this.playerNum; i++) {
-    //     if (sitHead && playerHead && playerHead.next) {
-    //       sitHead.node.player.counter = playerHead.node.counter;
-    //       sitHead.node.player.actionSize = playerHead.node.actionSize;
-    //       sitHead.node.player.actionCommand = playerHead.node.actionCommand;
-    //       sitHead.node.player.status = playerHead.node.status;
-    //       sitHead = sitHead.next;
-    //       playerHead = playerHead.next;
-    //     }
-    //   }
-    // }
 
     private init() {
       this.initSitLink(); // 为每个座位玩家进行相应设置，并得到this.sitLink
@@ -724,12 +678,23 @@
               throw new Error(`incorrect action: raise ========= action size: ${this.currPlayerNode.node.actionSize}, prevSize: ${this.prevSize}`);
             }
             const prevActionSize = this.currPlayerNode.node.actionSize >= 0 ? this.currPlayerNode.node.actionSize : 0;
+            // console.log('prevActionSize', this.currPlayerNode.node.actionSize);
+            if (this.currPlayer) {
+              this.currPlayer.actionSize = size;
+              this.currPlayer.counter -= size - prevActionSize;
+            }
             this.pot += (size - prevActionSize);
+            console.log(`${this.currPlayerNode.node.nickName} raises ${size - prevActionSize - this.prevSize}${this.moneyType} to ${size - prevActionSize}${this.moneyType};\n`);
           }
           try {
             // clearTimeout(this.actionTimeOut);
+            // console.log('commandString', commandString);
+            // console.log('this.prevSize', this.prevSize);
+            // console.log('breakPoint0');
             this.currPlayerNode.node.action(commandString, this.prevSize);
+            // console.log('breakPoint1');
             const nextPlayer = this.currPlayerNode.next.node;
+            // console.log('breakPoint2');
             // console.log(command, (nextPlayer.actionSize === this.prevSize
             //   && (nextPlayer.actionSize === this.currPlayerNode.node.actionSize || command === ECommand.FOLD)
             //   && this.prevSize !== this.smallBlind * 2 && this.prevSize !== 0), 'tst', size, nextPlayer.actionSize, this.prevSize);
@@ -757,82 +722,6 @@
       }
       // this.nextPlayer();
     }
-
-    // private action(command: string) {
-    //   // console.log('最少下注', this.prevSize);
-    //   // if (this.currPlayer) {
-    //   //   console.log(`${this.currPlayer.nickName} ${command}`);
-    //   // }
-    //   if (command === 'call') {
-    //     if (this.currPlayer) {
-    //       this.pot = this.pot + this.prevSize - this.currPlayer?.actionSize;
-    //       this.currPlayer.actionSize = this.prevSize;
-    //       this.currPlayer.counter -= this.prevSize;
-    //       const infoString = `${this.currPlayer?.nickName} calls ${this.prevSize}${this.moneyType};\n`;
-    //       this.handInfo.push(infoString);
-    //       console.log(infoString);
-    //     }
-    //   }
-
-    //   if (command.substring(0, 5) === 'raise') {
-    //     const raiseTo = Number(command.substring(6));
-    //     const raiseNum = raiseTo - this.prevSize;
-    //     this.pot += raiseTo;
-    //     this.prevSize = raiseTo;
-    //     if (this.currPlayer) {
-    //       this.currPlayer.actionSize = raiseTo;
-    //       this.currPlayer.counter -= raiseTo;
-    //       // this.currPlayer.status = 1;
-    //     }
-    //     // console.log('raiseNum', raiseNum);
-    //     // console.log('raiseTo', raiseTo);
-    //     // console.log(`${command}`);
-    //     const infoString = `${this.currPlayer?.nickName} raise ${raiseNum}${this.moneyType} to ${raiseTo}${this.moneyType};\n`;
-    //     this.handInfo.push(infoString);
-    //     console.log(infoString);
-    //     // console.log('handInfo', this.handInfo);
-    //   }
-    //   if (command === 'fold') {
-    //     if (this.currPlayer) {
-    //       this.currPlayer.status = -1;
-    //     }
-    //   }
-    //   // TODO allin多三块钱
-    //   if (command === 'allin') {
-    //     this.showAllin = true;
-    //     // setTimeout(() => {
-    //     //   this.showAllin = false;
-    //     // }, 3000);
-
-
-    //     if (this.currPlayer) {
-    //       const raiseTo = this.currPlayer?.counter + this.currPlayer?.actionSize;
-    //       // const raiseTo = this.currPlayer?.counter;
-    //       const raiseNum = raiseTo - this.currPlayer?.actionSize;
-    //       console.log('allin加注量', raiseNum);
-    //       this.pot += raiseNum;
-    //       if (raiseTo > this.prevSize) {
-    //         this.prevSize = raiseTo;
-    //       }
-    //       this.currPlayer.actionSize = raiseTo;
-    //       this.currPlayer.counter -= raiseTo;
-    //       const infoString = `${this.currPlayer?.nickName} raise ${raiseNum}${this.moneyType} to ${raiseTo}${this.moneyType};\n`;
-    //       this.handInfo.push(infoString);
-    //       console.log(infoString);
-    //       // this.currPlayer.status = 1;
-    //     }
-    //     // console.log('raiseNum', raiseNum);
-    //     // console.log('raiseTo', raiseTo);
-    //     // console.log(`${command}`);
-
-    //   }
-    //   // this.isAction = false;
-    //   // this.isRaise = false;
-
-    //   // 不管执行了什么动作，跳到下一位玩家
-    //   // this.nextPlayerTakeAction();
-    //   this.nextPlayer();
-    // }
 
     private isActionComplete(command: any, nextPlayer: Player, size: number) {
       if (this.currPlayerNode) {
