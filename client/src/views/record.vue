@@ -105,7 +105,7 @@
     users: Player[];
     smallBlind: number;
     isShort: boolean;
-    // actionRoundComplete: () => void;
+    actionRoundComplete: () => void;
     gameOverCallBack: () => void;
     autoActionCallBack: (actionType: string, userId: string) => void;
   }
@@ -434,6 +434,7 @@
     @Watch('actionRoundComplete')
     private actionRoundCompleteChange() {
       this.actionUserIdChange();
+      this.actionRoundComplete = false;
     }
 
     @Watch('actionUserId')

@@ -108,15 +108,25 @@ export class Player {
    * @example action('command:raise:10')
    */
   public action(commandString: string, prevSize: number = 0) {
-    console.log('commandString', commandString);
-    console.log('prevSize', prevSize);
     const commandArr = commandString.split(':');
     const command = commandArr[0];
     const raiseSize = Number(commandArr[1]);
+    // commandString raise:651
+    // prevSize 217
+    // counter 100
+    // actionSize 756
+    // raiseSize 756
+    // console.log('commandString', commandString);
+    // console.log('prevSize', prevSize);
+    // console.log('counter', this.counter);
+    // console.log('actionSize', this.actionSize);
+    // console.log('raiseSize', raiseSize);
     let size = 0;
+    // 没弃牌，没ALLIN,但是下注量已经超过了后手
     if ((command !== ECommand.ALL_IN && command !== ECommand.FOLD)
       && (prevSize > (this.counter + this.actionSize) || raiseSize > this.counter)) {
-      throw new Error('player: error action, overflow action size');
+        // console.log('没弃牌，没ALLIN,但是下注量已经超过了后手');
+        // throw new Error('player: error action, overflow action size');
     } else {
       this.actionCommand = (command === ECommand.SMALL_BLIND || command === ECommand.BIG_BLIND) ? '' : command;
     }
@@ -144,6 +154,7 @@ export class Player {
         // console.log('player: RAISE----------------', prevSize, this.actionSize);
         const actionSize = this.actionSize >= 0 ? this.actionSize : 0;
         size = raiseSize - actionSize;
+        // console.log('raise size:', size);
       } else {
         throw new Error('player: error action: raise size too small');
       }
