@@ -321,6 +321,7 @@
     private isShort: boolean = false;
     private refreshSitList: number = 0;
     private removedPlayers: Player[] = [];
+    private inPotPlayers: Player[] = [];
     private Hero: any = '';
     private SummarySeatInfo: string[] = [];
     private RaiseNum: number = this.smallBlind * 2;
@@ -460,6 +461,19 @@
           }
         }
         return false;
+      }
+    }
+
+    private getInPotPlayers() {
+      if (this.playerLink) {
+        let sitHead = this.sitLink;
+        // console.log(sitHead);
+        for (let i = 0; i < this.playerNum; i++) {
+          if (sitHead.node.player.status !== -1 && sitHead.node.player.actionCommand !== 'fold') {
+            this.inPotPlayers.push(sitHead.node.player);
+          }
+          sitHead = sitHead.next;
+        }
       }
     }
 
@@ -884,8 +898,13 @@
 
     private sortSummarySeatInfo() {
       console.log('sortSummarySeatInfo');
+      // if (this.currPlayerNode) {
+      //   console.log(this.PokeStyle(this.currPlayerNode.node.handCard));
+      // }
       if (this.SummarySeatInfo.length === 0 ) {
         return;
+      } else {
+        this.SummarySeatInfo.sort();
       }
     }
 
@@ -1006,7 +1025,46 @@
             winner.setIncome(income);
           }
           console.log('winner----------', winnerList, roundPotCount, pot, leftPot);
-          const winnerInfo = `${winnerList[0].nickName} collected ${this.moneyType}${pot} from pot\n`;
+          // console.log('removed players', this.removedPlayers);
+          // inPotPlayers实际上就是playerLink
+          // this.getInPotPlayers();
+          // console.log('inPot players', this.inPotPlayers);
+          // console.log('inPot players', this.playerLink);
+          // let debugInfo = '';
+          // if (this.currPlayerNode) {
+          //   debugInfo = `${this.currPlayerNode.node.nickName} is the first\n`;
+          //   // 确认了顺序，依旧是check顺序
+          //   this.handInfo.push(debugInfo);
+          // }
+          if (this.playerSize > 1) {
+            if (this.currPlayerNode) {
+              let playerHead = this.currPlayerNode;
+              let inPotPlayerHandInfo = '';
+              for (let i = 0; i < this.playerSize; i ++) {
+                inPotPlayerHandInfo = `${playerHead.node.nickName}: shows [${this.decodeHandCard(playerHead.node.handCard[0])} ${this.decodeHandCard(playerHead.node.handCard[1])}] (${this.PokeStyle(playerHead.node.handCard)})\n`;
+                this.handInfo.push(inPotPlayerHandInfo);
+                if (playerHead.next) {
+                  playerHead = playerHead.next;
+                }
+              }
+            }
+          }
+          let winnerInfo = '';
+          switch (winnerList[0].type) {
+            case 'BTN':
+              winnerInfo = `${winnerList[0].nickName} (button) collected ${this.moneyType}${pot} from pot\n`;
+              break;
+            case 'SB':
+              winnerInfo = `${winnerList[0].nickName} (small blind) collected ${this.moneyType}${pot} from pot\n`;
+              break;
+            case 'BB':
+              winnerInfo = `${winnerList[0].nickName} (big blind) collected ${this.moneyType}${pot} from pot\n`;
+              break;
+            default:
+              winnerInfo = `${winnerList[0].nickName} collected ${this.moneyType}${pot} from pot\n`;
+              break;
+          }
+          // winnerInfo = `${winnerList[0].nickName} collected ${this.moneyType}${pot} from pot\n`;
           this.handInfo.push(winnerInfo);
         });
       });
@@ -1113,6 +1171,18 @@
         console.log(riverInfoFlag);
         return;
       }
+
+      // if (this.status === EGameStatus.GAME_SHOWDOWN) {
+      //   // fire card
+      //   this.poker.getCard();
+      //   this.commonCard.push(this.poker.getCard());
+      //   this.setSate();
+      //   // TURN
+      //   const riverInfoFlag = `*** RIVER *** [${this.decodeHandCard(this.commonCard[0])} ${this.decodeHandCard(this.commonCard[1])} ${this.decodeHandCard(this.commonCard[2])} ${this.decodeHandCard(this.commonCard[3])}] [${this.decodeHandCard(this.commonCard[4])}]\n`;
+      //   this.handInfo.push(riverInfoFlag);
+      //   console.log(riverInfoFlag);
+      //   return;
+      // }
       throw new Error('error flow sendCard');
     }
 
@@ -1440,10 +1510,73 @@
           this.handInfo.push(boardInfo);
           break;
       }
+      if (this.currPlayerNode) {
+        // 只剩一名玩家
+        // let summarySeatInfo = '';
+        if (this.playerSize === 1) {
+          const summarySeatInfo = `Seat ${this.currPlayerNode.node.position + 1}: ${this.currPlayerNode.node.nickName} collected (${this.moneyType}${this.pot})\n`;
+          this.SummarySeatInfo.push(summarySeatInfo);
+        } else {
+          if (this.currPlayerNode) {
+            let head = this.currPlayerNode;
+            for (let i = 0; i < this.playerSize; i++) {
+              let summarySeatInfo = '';
+              console.log('HEAD:', head);
+              // chop pot
+              // 当前玩家是winner
+              if (this.isWinner(head.node)) {
+                switch (head.node.type) {
+                  case 'BTN':
+                    summarySeatInfo = `Seat ${head.node.position + 1}: ${head.node.nickName} (button) showed [${this.decodeHandCard(head.node.handCard[0])} ${this.decodeHandCard(head.node.handCard[1])}] and collected (${this.moneyType}${this.pot}) with ${this.PokeStyle(head.node.handCard)}\n`;
+                    break;
+                  case 'SB':
+                    summarySeatInfo = `Seat ${head.node.position + 1}: ${head.node.nickName} (small blind) showed [${this.decodeHandCard(head.node.handCard[0])} ${this.decodeHandCard(head.node.handCard[1])}] and collected (${this.moneyType}${this.pot}) with ${this.PokeStyle(head.node.handCard)}\n`;
+                    break;
+                  case 'BB':
+                    summarySeatInfo = `Seat ${head.node.position + 1}: ${head.node.nickName} (big blind) showed [${this.decodeHandCard(head.node.handCard[0])} ${this.decodeHandCard(head.node.handCard[1])}] and collected (${this.moneyType}${this.pot}) with ${this.PokeStyle(head.node.handCard)}\n`;
+                    break;
+                  default:
+                    summarySeatInfo = `Seat ${head.node.position + 1}: ${head.node.nickName} showed [${this.decodeHandCard(head.node.handCard[0])} ${this.decodeHandCard(head.node.handCard[1])}] and collected (${this.moneyType}${this.pot}) with ${this.PokeStyle(head.node.handCard)}\n`;
+                    break;
+                }
+              } else {
+                switch (head.node.type) {
+                  case 'BTN':
+                    summarySeatInfo = `Seat ${head.node.position + 1}: ${head.node.nickName} (button) showed [${this.decodeHandCard(head.node.handCard[0])} ${this.decodeHandCard(head.node.handCard[1])}] and lost with ${this.PokeStyle(head.node.handCard)}\n`;
+                    break;
+                  case 'SB':
+                    summarySeatInfo = `Seat ${head.node.position + 1}: ${head.node.nickName} (small blind) showed [${this.decodeHandCard(head.node.handCard[0])} ${this.decodeHandCard(head.node.handCard[1])}] and lost with ${this.PokeStyle(head.node.handCard)}\n`;
+                    break;
+                  case 'BB':
+                    summarySeatInfo = `Seat ${head.node.position + 1}: ${head.node.nickName} (big blind) showed [${this.decodeHandCard(head.node.handCard[0])} ${this.decodeHandCard(head.node.handCard[1])}] and lost with ${this.PokeStyle(head.node.handCard)}\n`;
+                    break;
+                  default:
+                    summarySeatInfo = `Seat ${head.node.position + 1}: ${head.node.nickName} showed [${this.decodeHandCard(head.node.handCard[0])} ${this.decodeHandCard(head.node.handCard[1])}] and lost with ${this.PokeStyle(head.node.handCard)}\n`;
+                    break;
+                }
+              }
+              this.SummarySeatInfo.push(summarySeatInfo);
+              if (head.next) {
+                  head = head.next;
+                }
+            }
+          }
+        }
+      }
+      console.log('WINNER:', this.winner);
       this.sortSummarySeatInfo();
       for (let i = 0; i < this.playerNum; i++) {
         this.handInfo.push(this.SummarySeatInfo[i]);
       }
+    }
+
+    private isWinner(player: Player): boolean {
+      for (let i = 0; i < this.winner.length; i++) {
+        if (player.nickName === this.winner[i][0].nickName) {
+          return true;
+        }
+      }
+      return false;
     }
 
     private decodeHandCard(handCard: string): string {
