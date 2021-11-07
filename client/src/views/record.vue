@@ -352,6 +352,7 @@
 
         this.getPlayerPokerStyle();
         console.log(this.playerSize);
+        console.log(this.allPlayer);
         if (this.playerSize > 1) {
           // 找出最大牌型
           let maxPokerStyle = this.allPlayer[0].pokerStyle;
@@ -374,28 +375,32 @@
               }
             }
           }
+          return;
+        }
+        if (this.playerSize === 0 && this.allInPlayers.length >= 2) {
+          console.log('TODO!');
         }
 
         /**
          * The max player can't win all of pot, get the largest of the remaining players
          * @param {Player[]} excludePlayers - exclude players
          */
-        const getOtherWinner = (excludePlayers: Player[]) => {
-          // all player allin, winner can't get all pot
-          const allPlayer = this.getPlayers('all', excludePlayers);
-          // all player are exclude
-          if (allPlayer) {
-            if (allPlayer.length === 0) {
-              return;
-            }
-            const maxLastPlayer = this.getMaxPlayers(allPlayer);
-            this.winner.push(maxLastPlayer);
-            if (this.getLeftoverPot() > 0) {
-              getOtherWinner([ ...excludePlayers, ...maxLastPlayer ]);
-            }
-          }
-          getOtherWinner([]);
-          };
+        // const getOtherWinner = (excludePlayers: Player[]) => {
+        //   // all player allin, winner can't get all pot
+        //   const allPlayer = this.getPlayers('all', excludePlayers);
+        //   // all player are exclude
+        //   if (allPlayer) {
+        //     if (allPlayer.length === 0) {
+        //       return;
+        //     }
+        //     const maxLastPlayer = this.getMaxPlayers(allPlayer);
+        //     this.winner.push(maxLastPlayer);
+        //     if (this.getLeftoverPot() > 0) {
+        //       getOtherWinner([ ...excludePlayers, ...maxLastPlayer ]);
+        //     }
+        //   }
+        //   getOtherWinner([]);
+        //   };
       }
     }
 
@@ -677,24 +682,54 @@
           if (this.status === EGameStatus.GAME_ACTION && this.currPlayerNode.next) {
           const commands = commandString.split(':');
           const command = commands[0];
+          // console.log('command', command);
           let size = Number(commands[1]);
           if (command === ECommand.ALL_IN) {
+            // console.log('node', this.currPlayerNode.node);
+            // console.log('currPlayer', this.currPlayer);
             // Counting player action size, if player's counter less than prevSize then use prevSize
+            // 加注量,997
             size = this.currPlayerNode.node.counter > this.prevSize ?
             this.currPlayerNode.node.counter : this.prevSize;
+            // 已经下注的量,3
+            const prevActionSize = this.currPlayerNode.node.actionSize >= 0 ? this.currPlayerNode.node.actionSize : 0;
+            // size = this.currPlayer?.actionSize;
             this.currActionAllinPlayer.push(this.currPlayerNode.node);
             // if (this.currPlayer) {
             //   // console.log(this.currPlayer);
             //   this.currPlayer.actionSize = size;
             //   this.currPlayer.counter -= size - this.currPlayer.inPot;
             // }
+            // this.removePlayer(this.currPlayerNode.node);
+            // this.pot += this.currPlayerNode.node.counter;
+            // console.log(`${this.currPlayerNode.node.nickName}: allin ${size}${this.moneyType}\n`);
+            let raiseInfo;
+            // console.log('node', this.currPlayerNode.node);
+            // console.log('prevActionSize', prevActionSize);
+            // console.log('size', size);
+            // console.log('counter', this.currPlayerNode.node.counter);
+            // console.log('prevSize', this.prevSize);
+            // console.log('inpot', this.currPlayerNode.node.inPot);
             this.removePlayer(this.currPlayerNode.node);
-            this.pot += this.currPlayerNode.node.counter;
-            console.log(`${this.currPlayerNode.node.nickName}: allin ${size}${this.moneyType}\n`);
+            this.pot += size;
+            if (this.prevSize === 0) {
+              raiseInfo = `${this.currPlayerNode.node.nickName}: bets ${this.moneyType}${size} and is all-in\n`;
+            } else {
+              if (this.currPlayerNode.node.counter > this.prevSize) {
+                // allin 但是筹码上个人多，比如上个人allin100，但是我all了150
+                raiseInfo = `${this.currPlayerNode.node.nickName}: raises ${this.moneyType}${size - this.prevSize + prevActionSize} to ${this.moneyType}${size + prevActionSize} and is all in\n`;
+              } else {
+                // allin 但是筹码小于等于上个人的allin Size
+                raiseInfo = `${this.currPlayerNode.node.nickName}: calls ${this.moneyType}${this.currPlayerNode.node.counter}\n`;
+              }
+            }
+            this.handInfo.push(raiseInfo);
+            console.log(raiseInfo);
           }
           if (command === ECommand.CALL) {
             // size，下注量
             size = this.prevSize;
+            // console.log('prevsize', this.prevSize);
             // actinSize,加注量
             const actionSize = this.currPlayerNode.node.actionSize >= 0 ? this.currPlayerNode.node.actionSize : 0;
             // console.log('call----------', actionSize);
@@ -703,7 +738,7 @@
               this.currPlayer.counter -= size - actionSize;
             }
             this.pot += size - actionSize;
-            const callInfo = `${this.currPlayerNode.node.nickName}: calls ${size}${this.moneyType}\n`;
+            const callInfo = `${this.currPlayerNode.node.nickName}: calls ${this.moneyType}${size - actionSize}\n`;
             this.handInfo.push(callInfo);
             console.log(callInfo);
           }
@@ -838,12 +873,18 @@
             size = -1;
           }
           if (command === ECommand.RAISE) {
+            // console.log(size);
+            console.log('inpot', this.currPlayerNode.node.inPot);
+            if (this.currPlayer) {
+              console.log('inpot', this.currPlayer.inPot);
+            }
             // counter not enough raise
             if (size < this.prevSize * 2) {
               throw new Error(`incorrect action: raise ========= action size: ${this.currPlayerNode.node.actionSize}, prevSize: ${this.prevSize}`);
             }
+            // prevActionSize表示当前玩家已经投入的筹码
             const prevActionSize = this.currPlayerNode.node.actionSize >= 0 ? this.currPlayerNode.node.actionSize : 0;
-            // console.log('prevActionSize', this.currPlayerNode.node.actionSize);
+            console.log('prevActionSize', this.currPlayerNode.node.actionSize);
             if (this.currPlayer) {
               this.currPlayer.actionSize = size;
               this.currPlayer.counter -= size - prevActionSize;
@@ -851,10 +892,14 @@
             this.pot += (size - prevActionSize);
             this.RaiseNum = size - prevActionSize - this.prevSize;
             let raiseInfo;
+            // console.log(size);
+            // console.log(prevActionSize);
+            // console.log(this.prevSize);
             if (this.prevSize === 0) {
-              raiseInfo = `${this.currPlayerNode.node.nickName}: bets ${size - prevActionSize}${this.moneyType}\n`;
+              raiseInfo = `${this.currPlayerNode.node.nickName}: bets ${this.moneyType}${size - prevActionSize}\n`;
             } else {
-              raiseInfo = `${this.currPlayerNode.node.nickName}: raises ${size - prevActionSize - this.prevSize}${this.moneyType} to ${size - prevActionSize}${this.moneyType}\n`;
+              raiseInfo = `${this.currPlayerNode.node.nickName}: raises ${this.moneyType}${size - this.prevSize} to ${this.moneyType}${size}\n`;
+              // + this.currPlayerNode.node.inPot
             }
             this.handInfo.push(raiseInfo);
             console.log(raiseInfo);
@@ -878,7 +923,7 @@
             // pre flop big blind check and other player call
             // pre flop big blind fold and other player call
             if (this.isActionComplete(command, nextPlayer, size)) {
-              console.log('actionComplete');
+              // console.log('actionComplete');
               this.actionComplete();
               return;
             }
@@ -1087,6 +1132,7 @@
       this.Summary();
       // console.log();
       this.logHandInfo();
+      // console.log(this.winner);
     }
 
     private setHandCard() {
@@ -1218,6 +1264,7 @@
 
 
     private getPlayers(type= 'all', excludePlayers?: Player[]) {
+      console.log('getPlayers!!!!!');
       if (this.playerLink) {
         let players = [];
         let nextPlayer: ILinkNode<Player> = this.playerLink.link;

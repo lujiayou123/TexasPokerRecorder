@@ -199,7 +199,7 @@ export class PokerGame {
    * @param {Player[]} excludePlayers - exclude player
    * @returns {any[]}
    */
-  getPlayers(type= 'all', excludePlayers?: Player[]) {
+  private getPlayers(type= 'all', excludePlayers?: Player[]) {
     let players = [];
     let nextPlayer: ILinkNode<Player> = this.playerLink.link;
     let i = 0;
@@ -211,8 +211,8 @@ export class PokerGame {
       i++;
     }
     players = type === 'all' ? [ ...players, ...this.allInPlayers ] : players;
-    return excludePlayers ? players.filter(p => {
-      const isNotPlayer = excludePlayers.filter(excludePlayer => excludePlayer.userId === p.userId
+    return excludePlayers ? players.filter((p) => {
+      const isNotPlayer = excludePlayers.filter((excludePlayer) => excludePlayer.userId === p.userId
         || excludePlayer.evPot >= p.evPot);
       return isNotPlayer.length === 0;
     }) : players;
@@ -224,7 +224,7 @@ export class PokerGame {
   getPlayerPokerStyle() {
     // test
     // this.commonCard = [ 'j4', 'k4', 'l4', 'm4', 'i4', ];
-    this.allPlayer.map(p => {
+    this.allPlayer.map((p) => {
       p.pokerStyle = new PokerStyle([ ...p.getHandCard(), ...this.commonCard ], this.isShort).getPokerWeight();
       return p;
     });
@@ -246,13 +246,13 @@ export class PokerGame {
    * @param {Player[]} lastPlayers
    * @returns {Player[]}
    */
-  getMaxPlayers(lastPlayers: Player[]) {
+  private getMaxPlayers(lastPlayers: Player[]) {
     const _maxPlayers: Player[] = [];
     const maxPlayer = lastPlayers.reduce((acc, cur) => {
       return this.compareCard(acc, cur) === 1 ? acc : cur;
     });
     // has many winner equal max player
-    lastPlayers.forEach(p => {
+    lastPlayers.forEach((p) => {
       if (this.compareCard(p, maxPlayer) === 0) {
         _maxPlayers.push(p);
       }
@@ -266,7 +266,7 @@ export class PokerGame {
    * @returns {ILinkNode<Player>}
    */
   private getFirstActionPlayer() {
-    const player = this.allPlayer.filter(p => p.counter > 0
+    const player = this.allPlayer.filter((p) => p.counter > 0
       && p.position !== 0 && p.actionCommand !== 'fold')[0];
     console.log('getFirstActionPlayer-------player', player);
     let link: ILinkNode<Player> | null = this.playerLink.link;
@@ -476,8 +476,8 @@ export class PokerGame {
     // action has allin, sum the allin player ev_pot
     if (this.currActionAllinPlayer.length !== 0) {
       let currAllinPlayerPot = 0;
-      this.currActionAllinPlayer.forEach(allinPlayer => {
-        this.allPlayer.forEach(p => {
+      this.currActionAllinPlayer.forEach((allinPlayer) => {
+        this.allPlayer.forEach((p) => {
           const actionSize = p.actionSize > 0 ? p.actionSize : 0;
           if (actionSize < allinPlayer.actionSize) {
             currAllinPlayerPot += actionSize;
@@ -578,7 +578,7 @@ export class PokerGame {
    * Clear all player action size and action command
    */
   private clearPlayerAction() {
-    this.allPlayer.forEach(player => {
+    this.allPlayer.forEach((player) => {
       player.clearActionSize();
     });
 
@@ -588,7 +588,7 @@ export class PokerGame {
    * Game over, init player
    */
   public initPlayer() {
-    this.allPlayer.forEach(player => {
+    this.allPlayer.forEach((player) => {
       player.type = '';
       player.actionSize = 0;
       player.actionCommand = '';
@@ -620,7 +620,7 @@ export class PokerGame {
   /**
    * Counting winner Pot
    */
-  counting() {
+  public counting() {
     let prevEvPot = 0;
     this.winner.forEach((winnerList, key) => {
       winnerList.sort((prev, next) => prev.inPot - next.inPot);
@@ -648,7 +648,7 @@ export class PokerGame {
   /**
    * Game over
    */
-  gameOver() {
+  private gameOver() {
     console.log('game over------------------');
     // only one player,other fold
     this.getWinner();
