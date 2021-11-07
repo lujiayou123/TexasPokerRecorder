@@ -706,9 +706,10 @@
             // console.log('currPlayer', this.currPlayer);
             // size = this.currPlayerNode.node.counter > this.prevSize ?
             // this.currPlayerNode.node.counter : this.prevSize;
-            size = this.currPlayerNode.node.counter;
-            // 已经下注的量,3
+            // size = this.currPlayerNode.node.counter;
+            // 已经下注的量,30
             const prevActionSize = this.currPlayerNode.node.actionSize >= 0 ? this.currPlayerNode.node.actionSize : 0;
+            size = this.currPlayerNode.node.counter + prevActionSize;
             // size = this.currPlayer?.actionSize;
             this.currActionAllinPlayer.push(this.currPlayerNode.node);
             let raiseInfo;
@@ -725,13 +726,13 @@
             } else {
               if (this.currPlayerNode.node.counter > this.prevSize) {
                 // allin 但是筹码上个人多，比如上个人allin100，但是我all了150
-                raiseInfo = `${this.currPlayerNode.node.nickName}: raises ${this.moneyType}${size + prevActionSize - this.prevSize} to ${this.moneyType}${size + prevActionSize} and is all in\n`;
+                raiseInfo = `${this.currPlayerNode.node.nickName}: raises ${this.moneyType}${size - this.prevSize} to ${this.moneyType}${size} and is all in\n`;
                 // this.pot += size - this.prevSize + prevActionSize;
-                this.pot += size;
+                this.pot += size - prevActionSize;
               } else {
                 // allin 但是筹码小于等于上个人的allin Size
-                raiseInfo = `${this.currPlayerNode.node.nickName}: calls ${this.moneyType}${size}\n`;
-                this.pot += size;
+                raiseInfo = `${this.currPlayerNode.node.nickName}: calls ${this.moneyType}${size - prevActionSize}\n`;
+                this.pot += size - prevActionSize;
               }
             }
             this.handInfo.push(raiseInfo);
@@ -919,6 +920,7 @@
               this.actionComplete();
               return;
             }
+            console.log(size);
             this.prevSize = command === ECommand.FOLD ? this.prevSize : size;
             // console.log('prevSize:', this.prevSize);
             this.nextPlayer();
