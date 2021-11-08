@@ -326,6 +326,8 @@
     private SummarySeatInfo: string[] = [];
     private RaiseNum: number = this.smallBlind * 2;
     private haveShowedHandCard: boolean = false;
+    private autoDownload: boolean = true;
+    private HandFinished: boolean = false;
 
     public getWinner() {
       if (this.currPlayerNode) {
@@ -1131,6 +1133,15 @@
       // console.log();
       this.logHandInfo();
       // console.log(this.winner);
+      // this.newHand();
+    }
+
+    private newHand() {
+      if (this.HandFinished) {
+        this.HandFinished = false;
+        this.gaming = false;
+        this.init();
+      }
     }
 
     private setHandCard() {
@@ -1895,15 +1906,38 @@
       // console.log('getCurrPostionByCurrIndex, this.currPosition:', this.currPosition);
     }
 
+    private downloadTxt(text: string, fileName: string) {
+          const element = document.createElement('a');
+          element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
+          element.setAttribute('download', fileName);
+          element.style.display = 'none';
+          element.click();
+      }
+
     private logHandInfo() {
       console.log('handInfo', this.handInfo);
+      // PokerStars Zoom Hand #198787544: Hold'em No Limit  ($0.5/$1) - 2021/10/8 16:49:0
+      const now = new Date();
+      const year = now.getFullYear(); // 得到年份
+      const month = now.getMonth(); // 得到月份
+      const day = now.getDate(); // 得到日期
+      const hour = now.getHours(); // 得到小时数
+      const minute = now.getMinutes(); // 得到分钟数
+      const second = now.getSeconds(); // 得到秒数
+      const fileName = `Hand${year}${month}${day}${hour}${minute}${second}.txt`;
+      let text = '';
       const length = this.handInfo.length;
       for (let i = 0; i < length; i++) {
         const line = this.handInfo[i];
         if (line !== '' && line !== undefined) {
           console.log(this.handInfo[i]);
+          text = text + this.handInfo[i];
         }
       }
+      if (this.autoDownload) {
+        this.downloadTxt(text, fileName);
+      }
+      this.HandFinished = true;
     }
   }
 </script>
