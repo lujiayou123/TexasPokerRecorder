@@ -28,20 +28,20 @@
         <div class="room-config-shadow" @click="showGameconfig = false"></div>
         <div class="room-config-body">
           <h1> 手牌设置</h1>
-          <div class="input-bd">
-            <div class="input-name">小盲:</div>
-            <div class="input-text">
-              <input type="tel"
-                     v-model="smallBlind"/>
-            </div>
-          </div>
-          <div class="input-bd">
-            <div class="input-name">人数:</div>
-            <div class="input-text">
-              <input type="tel"
-                     v-model="playerNum"/>
-            </div>
-          </div>
+          <el-input v-model="smallBlind" placeholder="请输入小盲" clearable>
+            <template slot="prepend">小盲:</template>
+          </el-input>
+          <el-input v-model="playerNum" placeholder="请输入人数" :disabled="true" clearable>
+            <template slot="prepend">人数:</template>
+          </el-input>
+          <el-select v-model="moneyType" placeholder="请选择货币类型">
+            <el-option
+              v-for="item in moneyTypeOptions"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value">
+            </el-option>
+          </el-select>
           <div class="btn"  @click="recordSingleHand"><span>记录一手牌</span></div>
         </div>
       </div>
@@ -116,6 +116,24 @@
     private commandList = [];
     private currGameIndex = 0;
     private gameList: IGameRecord [] = [];
+    private moneyTypeOptions = [{
+          value: '$',
+          label: '$',
+        }, {
+          value: '￥',
+          label: '￥',
+        }, {
+          value: 'bb',
+          label: 'bb',
+        }];
+    private rules = {
+          name: [
+            { required: true, message: '用户名不能为空', trigger: 'change' },
+            { min: 2, max: 9, message: '长度在 2 到 30 个字符', trigger: 'blur'},
+          ],
+        };
+
+    // private value = '';
 
     // 创建房间
     private async createRoom() {

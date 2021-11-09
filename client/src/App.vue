@@ -6,7 +6,9 @@
 
 <script lang="ts">
 import { Vue } from 'vue-property-decorator';
-
+import ElementUI from 'element-ui';
+import 'element-ui/lib/theme-chalk/index.css';
+Vue.use(ElementUI);
 export default class App extends Vue {}
 </script>
 

@@ -587,7 +587,7 @@
       const gameConfig = cookie.get('gameConfig') || localStorage.getItem('gameConfig') || '';
       this.gameConfig = JSON.parse(gameConfig);
       this.playerNum = this.gameConfig.playerNum;
-      this.smallBlind = this.smallBlind;
+      this.smallBlind = this.gameConfig.smallBlind;
       this.moneyType = this.gameConfig.moneyType;
     }
 
