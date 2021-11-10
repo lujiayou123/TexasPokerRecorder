@@ -64,6 +64,14 @@
       :showInputFlop.sync="showInputFlop"
       @TransferFlopToRecord="getFlop">
     </InputFlop>
+    <InputTurn
+      :showInputTurn.sync="showInputTurn"
+      @TransferTurnToRecord="getTurn">
+    </InputTurn>
+    <InputRiver
+      :showInputRiver.sync="showInputRiver"
+      @TransferRiverToRecord="getRiver">
+    </InputRiver>
     <toast :show.sync="showMsg"
            :text="msg">
     </toast>
@@ -104,13 +112,15 @@
   import { IRoom } from '@/interface/IRoom';
   import service from '../service';
   import gameRecord from '@/components/GameRecord.vue';
-  import InputFlop from '@/components/InputFlop.vue';
   import {IGameRecord} from '@/interface/IGameRecord';
   import { IPoker, Poker } from '../core/Poker';
   import { EPlayerType, Player, IPlayer } from '../core/Player';
   import fastClick from 'fastclick';
   import Timeout = NodeJS.Timeout;
   import { Console } from 'console';
+  import InputFlop from '@/components/InputFlop.vue';
+  import InputTurn from '@/components/InputTurn.vue';
+  import InputRiver from '@/components/InputRiver.vue';
 
   interface IPokerGame {
     users: Player[];
@@ -174,6 +184,8 @@
       record,
       gameRecord,
       InputFlop,
+      InputTurn,
+      InputRiver,
       notice,
       iAudio,
       actionDialog,
@@ -341,8 +353,11 @@
     private HandFinished: boolean = false;
     private setHero: boolean = false;
     private showInputFlop: boolean = false;
-    private inputTurn: boolean = false;
-    private inputRiver: boolean = false;
+    private showInputTurn: boolean = false;
+    private showInputRiver: boolean = false;
+    // private FlopBeenSet: boolean = false;
+    // private TurnBeenSet: boolean = false;
+    // private RiverBeenSet: boolean = false;
 
     public getWinner() {
       if (this.currPlayerNode) {
@@ -528,11 +543,55 @@
     private getFlop(flop: string[]) {
       console.log('获取到子组件传来的flop', flop);
       this.showInputFlop = false;
-      // this.handCards = handCard;
       for (const card of flop) {
         this.commonCard.push(card);
       }
-      // this.setHandCard(this.currSit);
+    }
+
+    private getTurn(turn: string) {
+      console.log('获取到子组件传来的turn', turn);
+      this.showInputTurn = false;
+      this.commonCard.push(turn);
+    }
+
+    private getRiver(river: string) {
+      console.log('获取到子组件传来的river', river);
+      this.showInputRiver = false;
+      this.commonCard.push(river);
+    }
+
+    @Watch('showInputFlop')
+    private showInputFlopChange(oldVal: boolean, newVal: boolean) {
+      console.log('oldVal', oldVal);
+      console.log('newVal', newVal);
+      if (!oldVal && newVal) {
+        const flopInfoFlag = `*** FLOP *** [${this.decodeHandCard(this.commonCard[0])} ${this.decodeHandCard(this.commonCard[1])} ${this.decodeHandCard(this.commonCard[2])}]\n`;
+        this.handInfo.push(flopInfoFlag);
+        console.log(flopInfoFlag);
+      }
+      // console.log(oldVal);
+      // console.log(newVal);
+      // console.log('showInputFlop', this.showInputFlop);
+    }
+
+    @Watch('showInputTurn')
+    private showInputTurnChange(oldVal: boolean, newVal: boolean) {
+      if (!oldVal && newVal) {
+        const turnInfoFlag = `*** TURN *** [${this.decodeHandCard(this.commonCard[0])} ${this.decodeHandCard(this.commonCard[1])} ${this.decodeHandCard(this.commonCard[2])}] [${this.decodeHandCard(this.commonCard[3])}]\n`;
+        this.handInfo.push(turnInfoFlag);
+        console.log(turnInfoFlag);
+      }
+      // console.log('showInputTurn', this.showInputTurn);
+    }
+
+    @Watch('showInputRiver')
+    private showInputRiverChange(oldVal: boolean, newVal: boolean) {
+      if (!oldVal && newVal) {
+        const riverInfoFlag = `*** RIVER *** [${this.decodeHandCard(this.commonCard[0])} ${this.decodeHandCard(this.commonCard[1])} ${this.decodeHandCard(this.commonCard[2])} ${this.decodeHandCard(this.commonCard[3])}] [${this.decodeHandCard(this.commonCard[4])}]\n`;
+        this.handInfo.push(riverInfoFlag);
+        console.log(riverInfoFlag);
+      }
+      // console.log('showInputRiver', this.showInputRiver);
     }
 
     @Watch('actionRoundComplete')
@@ -540,6 +599,7 @@
       this.actionUserIdChange();
       this.actionRoundComplete = false;
     }
+
 
     @Watch('actionUserId')
     private actionUserIdChange() {
@@ -947,15 +1007,17 @@
             // pre flop big blind check and other player call
             // pre flop big blind fold and other player call
             if (this.isActionComplete(command, nextPlayer, size)) {
-              // console.log('actionComplete');
+              console.log('actionComplete');
               this.actionComplete();
               return;
             }
-            console.log('size:', size);
+            // console.log('breakPoint3');
+            // console.log('size:', size);
             this.prevSize = command === ECommand.FOLD ? this.prevSize : size;
             // console.log('prevSize:', this.prevSize);
             this.nextPlayer();
             this.setCurrPlayerAction();
+            // console.log('breakPoint4');
           } catch (e) {
             throw new Error('action:' + e);
           }
@@ -1044,8 +1106,8 @@
             this.slidePots.push(p.evPot - this.allInPlayers[key - 1].evPot);
           }
         });
-        // console.log('break point0');
       }
+      // console.log('breakPoint0');
       // action complete clear player actionSize = 0
       this.clearPlayerAction();
       // console.log('break point1');
@@ -1063,12 +1125,15 @@
           this.pokerGameOver();
         }, 300);
       }
+      // console.log('breakPoint4');
       // action round complete, start auto action interval
       if (this.status < EGameStatus.GAME_SHOWDOWN && this.playerSize > 1) {
         // this.actionEndTime = Date.now() + ACTION_TIME;
         this.sendCard();
+        // console.log('breakPoint5');
         // this.startActionRound();
         this.setCurrPlayerAction();
+        // console.log('breakPoint6');
       }
       // this.actionRoundComplete();
       this.actionRoundComplete = true;
@@ -1221,14 +1286,9 @@
         return;
       }
       if (this.status === EGameStatus.GAME_FLOP) {
-        // fire card
-        // this.poker.getCard();
-        // for (let i = 0; i < 3; i++) {
-        //   this.commonCard.push(this.poker.getCard());
-        // }
-        // TODO!!
         this.setFlop();
         this.setSate();
+        // console.log('breakpoint11');
         // ALLIN show handcard
         if (!this.haveShowedHandCard) {
           if (this.allInPlayers.length >= 2) {
@@ -1241,17 +1301,13 @@
           }
         }
         // FLOP
-        const flopInfoFlag = `*** FLOP *** [${this.decodeHandCard(this.commonCard[0])} ${this.decodeHandCard(this.commonCard[1])} ${this.decodeHandCard(this.commonCard[2])}]\n`;
-        this.handInfo.push(flopInfoFlag);
-        console.log(flopInfoFlag);
+        // const flopInfoFlag = `*** FLOP *** [${this.decodeHandCard(this.commonCard[0])} ${this.decodeHandCard(this.commonCard[1])} ${this.decodeHandCard(this.commonCard[2])}]\n`;
+        // this.handInfo.push(flopInfoFlag);
+        // console.log(flopInfoFlag);
         return;
       }
       if (this.status === EGameStatus.GAME_TURN) {
-        // fire card
-        // this.poker.getCard();
-        // this.commonCard.push(this.poker.getCard());
-        // TODO!!
-        // this.setTurn();
+        this.setTurn();
         this.setSate();
         // ALLIN show handcard
         if (!this.haveShowedHandCard) {
@@ -1265,17 +1321,13 @@
           }
         }
         // TURN
-        const turnInfoFlag = `*** TURN *** [${this.decodeHandCard(this.commonCard[0])} ${this.decodeHandCard(this.commonCard[1])} ${this.decodeHandCard(this.commonCard[2])}] [${this.decodeHandCard(this.commonCard[3])}]\n`;
-        this.handInfo.push(turnInfoFlag);
-        console.log(turnInfoFlag);
+        // const turnInfoFlag = `*** TURN *** [${this.decodeHandCard(this.commonCard[0])} ${this.decodeHandCard(this.commonCard[1])} ${this.decodeHandCard(this.commonCard[2])}] [${this.decodeHandCard(this.commonCard[3])}]\n`;
+        // this.handInfo.push(turnInfoFlag);
+        // console.log(turnInfoFlag);
         return;
       }
       if (this.status === EGameStatus.GAME_RIVER) {
-        // fire card
-        // this.poker.getCard();
-        // this.commonCard.push(this.poker.getCard());
-        // TODO!!
-        // this.setRiver();
+        this.setRiver();
         this.setSate();
         // ALLIN show handcard
         if (!this.haveShowedHandCard) {
@@ -1288,10 +1340,10 @@
             this.haveShowedHandCard = true;
           }
         }
-        // TURN
-        const riverInfoFlag = `*** RIVER *** [${this.decodeHandCard(this.commonCard[0])} ${this.decodeHandCard(this.commonCard[1])} ${this.decodeHandCard(this.commonCard[2])} ${this.decodeHandCard(this.commonCard[3])}] [${this.decodeHandCard(this.commonCard[4])}]\n`;
-        this.handInfo.push(riverInfoFlag);
-        console.log(riverInfoFlag);
+        // RIVER
+        // const riverInfoFlag = `*** RIVER *** [${this.decodeHandCard(this.commonCard[0])} ${this.decodeHandCard(this.commonCard[1])} ${this.decodeHandCard(this.commonCard[2])} ${this.decodeHandCard(this.commonCard[3])}] [${this.decodeHandCard(this.commonCard[4])}]\n`;
+        // this.handInfo.push(riverInfoFlag);
+        // console.log(riverInfoFlag);
         return;
       }
 
@@ -1311,6 +1363,12 @@
 
     private setFlop() {
       this.showInputFlop = true;
+    }
+    private setTurn() {
+      this.showInputTurn = true;
+    }
+    private setRiver() {
+      this.showInputRiver = true;
     }
 
     private getMaxPlayers(lastPlayers: Player[]) {
@@ -1582,20 +1640,29 @@
         this.setPreFlopInfo();
         // playerLink没手牌信息
         console.log(this.playerLink);
-      } else {
-        this.$message.error('请设置Hero的手牌');
       }
+      // else {
+      //   this.$message.error('Hero设置时出错');
+      // }
     }
 
     private checkHeroInfo() {
       let sitHead = this.sitLink;
       console.log('sitHead:', sitHead);
+      let heroNum = 0;
       for (let i = 0; i < this.playerNum; i++) {
         if (sitHead.node.player.nickName === 'Hero') {
-          this.setHero = true;
-          return;
+          // this.setHero = true;
+          heroNum ++;
         }
         sitHead = sitHead.next;
+      }
+      if (heroNum === 0) {
+        this.$message.error('请设置Hero的手牌');
+      } else if (heroNum === 1) {
+        this.setHero = true;
+      } else if (heroNum >= 2) {
+        this.$message.error('设置了多个Hero');
       }
     }
 

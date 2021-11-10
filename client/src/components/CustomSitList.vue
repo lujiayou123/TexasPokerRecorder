@@ -164,6 +164,15 @@
       // this.setHandCard(this.currSit);
     }
 
+    private getRandomId(length: number): string {
+      const str = '0123456789abcdefghijklmnopqrstuvwxyz';
+      let randomId = '';
+      for (let i = 9; i > 0; --i) {
+        randomId += str[Math.floor(Math.random() * str.length)];
+      }
+      return randomId;
+    }
+
     private getIsHero(isHero: boolean) {
       console.log('获取到子组件传来的isHero', isHero);
       this.showInputHandCard = false;
@@ -171,6 +180,8 @@
       if (this.currSit.player) {
         if (isHero) {
           this.currSit.player.nickName = 'Hero';
+        } else {
+          this.currSit.player.nickName = this.getRandomId(8);
         }
       }
       // this.setHandCard(this.currSit);

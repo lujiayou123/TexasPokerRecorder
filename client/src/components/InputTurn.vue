@@ -1,16 +1,16 @@
 <template>
   <div class="buy-in"
-       v-show="showInputFlop">
+       v-show="showInputTurn">
     <!-- <div class="shadow"
-         @click="closeInputFlop"></div> -->
+         @click="closeInputTurn"></div> -->
     <div class="buy-in-body">
       <!-- <div class="input-bd">
         <div class="input-name"><span>s黑桃,h红桃,c梅花,d方片</span></div>
         <input type="string" v-model="handCard1" placeholder="请输入第一张牌，例如Ah">
         <input type="string" v-model="handCard2" placeholder="请输入第二张牌，例如Ad">
       </div> -->
-      <h3> FLOP设置</h3>
-      <label>第一张牌</label>
+      <h3>TURN设置</h3>
+      <label>转牌</label>
       <div class="input-bd">
         <el-select v-model="color1" placeholder="请选花色" style="width:120px">
             <el-option
@@ -30,46 +30,7 @@
         </el-select>
       </div>
 
-      <label>第二张牌</label>
-      <div class="input-bd">
-        <el-select v-model="color2" placeholder="请选花色" style="width:120px">
-            <el-option
-              v-for="item in colorOptions"
-              :key="item.value"
-              :label="item.label"
-              :value="item.value">
-            </el-option>
-        </el-select>
-        <el-select v-model="card2" placeholder="请选牌" style="width:120px">
-            <el-option
-              v-for="item in cardOptions"
-              :key="item.value"
-              :label="item.label"
-              :value="item.value">
-            </el-option>
-        </el-select>
-      </div>
-
-      <label>第三张牌</label>
-      <div class="input-bd">
-        <el-select v-model="color3" placeholder="请选花色" style="width:120px">
-            <el-option
-              v-for="item in colorOptions"
-              :key="item.value"
-              :label="item.label"
-              :value="item.value">
-            </el-option>
-        </el-select>
-        <el-select v-model="card3" placeholder="请选牌" style="width:120px">
-            <el-option
-              v-for="item in cardOptions"
-              :key="item.value"
-              :label="item.label"
-              :value="item.value">
-            </el-option>
-        </el-select>
-      </div>
-      <div class="btn"><span @click="inputFlop">确定</span></div>
+      <div class="btn"><span @click="inputTurn">确定</span></div>
     </div>
   </div>
 </template>
@@ -82,20 +43,16 @@
       // range,
     },
   })
-  export default class InputFlop extends Vue {
+  export default class InputTurn extends Vue {
     // prop
-    @Prop() private showInputFlop!: boolean;
+    @Prop() private showInputTurn!: boolean;
     // @Prop() private handCard1!: string;
     // @Prop() private handCard2!: string;
     // @Prop() private handCard!: string[];
-    private card1: string = '3';
-    private card2: string = '4';
-    private card3: string = '5';
-    private color1: string = 'h';
-    private color2: string = 'c';
-    private color3: string = 'd';
+    private card1: string = '6';
+    private color1: string = 's';
     private handCard: string[] = [];
-    private flop: string[] = [];
+    private Turn: string = '';
     private IsHero: boolean = false;
     private cardOptions = [
         {
@@ -167,11 +124,11 @@
         },
         ];
 
-    private closeInputFlop() {
-      this.$emit('update:showInputFlop', false);
+    private closeInputTurn() {
+      this.$emit('update:showInputTurn', false);
     }
 
-    private async inputFlop() {
+    private async inputTurn() {
       const cardDict: { [key: string]: string; } = {
         2: 'a', 3: 'b', 4: 'c', 5: 'd', 6: 'e', 7: 'f', 8: 'g', 9: 'h', T: 'i', J: 'j', Q: 'k', K: 'l', A: 'm',
         t: 'i', j: 'j', q: 'k', k: 'l', a: 'm',
@@ -181,16 +138,12 @@
         D: '1', C: '2', H: '3', S: '4',
       };
       let card1 = '';
-      let card2 = '';
-      let card3 = '';
       card1 = cardDict[this.card1] + colorDict[this.color1];
-      card2 = cardDict[this.card2] + colorDict[this.color2];
-      card3 = cardDict[this.card3] + colorDict[this.color3];
-      this.flop = [card1, card2, card3];
-      console.log(this.flop);
-      this.$emit('TransferFlopToRecord', this.flop);
+      this.Turn = card1;
+      console.log(this.Turn);
+      this.$emit('TransferTurnToRecord', this.Turn);
       // this.$emit('TransferIsHeroToCustomSitList', this.IsHero);
-      this.closeInputFlop();
+      this.closeInputTurn();
     }
     private mounted() {
       // this.buyInSize = this.min;
