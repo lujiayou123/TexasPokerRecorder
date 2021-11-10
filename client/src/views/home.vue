@@ -27,7 +27,7 @@
       <div class="room-config" v-show="showGameconfig">
         <div class="room-config-shadow" @click="showGameconfig = false"></div>
         <div class="room-config-body">
-          <h1> 手牌设置</h1>
+          <h1> 牌局设置</h1>
           <!-- <el-input v-model="smallBlind" placeholder="请输入小盲" clearable>
             <template slot="prepend">小盲:</template>
           </el-input>

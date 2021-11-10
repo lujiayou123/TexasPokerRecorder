@@ -4,11 +4,69 @@
     <div class="shadow"
          @click="closeInputHandCard"></div>
     <div class="buy-in-body">
-      <div class="input-bd">
+      <!-- <div class="input-bd">
         <div class="input-name"><span>s黑桃,h红桃,c梅花,d方片</span></div>
         <input type="string" v-model="handCard1" placeholder="请输入第一张牌，例如Ah">
         <input type="string" v-model="handCard2" placeholder="请输入第二张牌，例如Ad">
-      </div>
+      </div> -->
+      <h3> 手牌设置</h3>
+      <label>第一张牌</label>
+      <div class="input-bd">
+        <el-select v-model="color1" placeholder="请选花色" style="width:120px">
+            <el-option
+              v-for="item in colorOptions"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value">
+            </el-option>
+        </el-select>
+        <el-select v-model="handCard1" placeholder="请选牌" style="width:120px">
+            <el-option
+              v-for="item in cardOptions"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value">
+            </el-option>
+        </el-select>
+            <!-- <div class="input-name">第一张牌:</div>
+            <div class="input-text">
+              <input type="string"
+                     v-model="handCard1"
+                     placeholder="请输入第一张牌，例如Ah"/>
+            </div> -->
+          </div>
+      <label>第二张牌</label>
+      <div class="input-bd">
+        <el-select v-model="color2" placeholder="请选花色" style="width:120px">
+            <el-option
+              v-for="item in colorOptions"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value">
+            </el-option>
+        </el-select>
+        <el-select v-model="handCard2" placeholder="请选牌" style="width:120px">
+            <el-option
+              v-for="item in cardOptions"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value">
+            </el-option>
+        </el-select>
+            <!-- <div class="input-name">第二张牌:</div>
+            <div class="input-text">
+              <input type="string"
+                     v-model="handCard2"
+                     placeholder="请输入第二张牌，例如Ad"/>
+            </div> -->
+          </div>
+      <div class="input-bd">
+            <div class="input-name">IsHero:</div>
+            <div class="input-text">
+              <input type="checkbox"
+                     v-model="IsHero"/>
+            </div>
+          </div>
       <div class="btn"><span @click="inputHandCard">确定</span></div>
     </div>
   </div>
@@ -30,7 +88,79 @@
     // @Prop() private handCard!: string[];
     private handCard1: string = '';
     private handCard2: string = '';
+    private color1: string = '';
+    private color2: string = '';
     private handCard: string[] = [];
+    private IsHero: boolean = false;
+    private cardOptions = [
+        {
+          value: 'A',
+          label: 'A',
+        },
+        {
+          value: '2',
+          label: '2',
+        },
+        {
+          value: '3',
+          label: '3',
+        },
+        {
+          value: '4',
+          label: '4',
+        },
+        {
+          value: '5',
+          label: '5',
+        },
+        {
+          value: '6',
+          label: '6',
+        },
+        {
+          value: '7',
+          label: '7',
+        },
+        {
+          value: '8',
+          label: '8',
+        },
+        {
+          value: '9',
+          label: '9',
+        },
+        {
+          value: 'T',
+          label: '10',
+        },
+        {
+          value: 'J',
+          label: 'J',
+        },
+        {
+          value: 'Q',
+          label: 'Q',
+        },
+        {
+          value: 'K',
+          label: 'K',
+        },
+        ];
+    private colorOptions = [{
+          value: 's',
+          label: '黑桃',
+        }, {
+          value: 'h',
+          label: '红桃',
+        }, {
+          value: 'c',
+          label: '草花',
+        },
+        {
+          value: 'd',
+          label: '方片',
+        },
+        ];
 
     private closeInputHandCard() {
       this.$emit('update:showInputHandCard', false);
@@ -47,15 +177,13 @@
       };
       let card1 = '';
       let card2 = '';
-      if (this.handCard1.length === 2) {
-        card1 = cardDict[this.handCard1[0]] + colorDict[this.handCard1[1]];
-      }
-      if (this.handCard2.length === 2) {
-        card2 = cardDict[this.handCard2[0]] + colorDict[this.handCard2[1]];
-      }
+      card1 = cardDict[this.handCard1] + colorDict[this.color1];
+      card2 = cardDict[this.handCard2] + colorDict[this.color2];
       this.handCard = [card1, card2];
-      // this.$emit('child-event', 传递内容);
-      this.$emit('child-event', this.handCard);
+      console.log(this.handCard);
+      console.log(this.IsHero);
+      this.$emit('TransferHandCardToCustomSitList', this.handCard);
+      this.$emit('TransferIsHeroToCustomSitList', this.IsHero);
       this.closeInputHandCard();
     }
     private mounted() {

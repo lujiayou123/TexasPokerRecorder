@@ -92,7 +92,8 @@
     </BuyIn>
     <InputHandCard
       :showInputHandCard.sync="showInputHandCard"
-      @child-event="inputHandCard" >
+      @TransferHandCardToCustomSitList="getHandCard"
+      @TransferIsHeroToCustomSitList="getIsHero" >
     </InputHandCard>
     <!-- :handCard.sync="handCard" -->
   </div>
@@ -152,15 +153,27 @@
       this.sitDown(this.currSit);
     }
     // 参数handCard，就是this.$emit('child-event', this.handCard);中传递的this.handCard
-    private inputHandCard(handCard: string[]) {
-      console.log('获取到子组件传来的handCards', handCard);
+    private getHandCard(handCard: string[]) {
+      console.log('获取到子组件传来的handCard', handCard);
       this.showInputHandCard = false;
-      this.handCards = handCard;
+      // this.handCards = handCard;
       console.log('cursit:', this.currSit);
       if (this.currSit.player) {
         this.currSit.player.handCard = handCard;
       }
-      this.setHandCard(this.currSit);
+      // this.setHandCard(this.currSit);
+    }
+
+    private getIsHero(isHero: boolean) {
+      console.log('获取到子组件传来的isHero', isHero);
+      this.showInputHandCard = false;
+      console.log('cursit:', this.currSit);
+      if (this.currSit.player) {
+        if (isHero) {
+          this.currSit.player.nickName = 'Hero';
+        }
+      }
+      // this.setHandCard(this.currSit);
     }
 
     private showHandCard(sit: ISit) {
@@ -236,7 +249,8 @@
 
     private setHandCard(sit: ISit) {
       console.log('setHandCard');
-      console.log('sit_info:', sit);
+      // console.log('sit:', sit);
+      // console.log('sitlink:', this.sitLink);
       this.showInputHandCard = true;
       this.currSit = sit;
       return;

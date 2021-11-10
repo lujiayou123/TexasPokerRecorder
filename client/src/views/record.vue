@@ -22,7 +22,8 @@
     <notice :message-list="messageList"></notice>
     <div class="winner-poke-style"
          v-show="gameOver && winner[0][0].handCard.length > 0">
-      {{PokeStyle(winner[0] && winner[0][0] && winner[0][0].handCard)}} WIN!!
+      <!-- {{PokeStyle(winner[0] && winner[0][0] && winner[0][0].handCard)}} WIN!! -->
+      {{winner[0] && winner[0][0] && winner[0][0].nickName}} WIN!!
     </div>
     <div class="game-body">
       <div class="pot">pot: {{pot}}</div>
@@ -68,7 +69,8 @@
                 :game-list="gameList"
                 @getRecord = "getRecord"
                 :curr-game-index="currGameIndex"
-                :command-list="commandRecordList"></gameRecord>
+                :command-list="commandRecordList">
+    </gameRecord>
   </div>
 </template>
 
@@ -326,8 +328,9 @@
     private SummarySeatInfo: string[] = [];
     private RaiseNum: number = this.smallBlind * 2;
     private haveShowedHandCard: boolean = false;
-    private autoDownload: boolean = true;
+    private autoDownload: boolean = false;
     private HandFinished: boolean = false;
+    private setHero: boolean = true;
 
     public getWinner() {
       if (this.currPlayerNode) {
@@ -575,6 +578,11 @@
     }
 
     private init() {
+      const gameConfig = cookie.get('gameConfig') || localStorage.getItem('gameConfig') || '';
+      this.gameConfig = JSON.parse(gameConfig);
+      this.playerNum = this.gameConfig.playerNum;
+      this.smallBlind = this.gameConfig.smallBlind;
+      this.moneyType = this.gameConfig.moneyType;
       this.initSitLink(); // 为每个座位玩家进行相应设置，并得到this.sitLink
       this.joinMsg = '';
       this.handCard = [];
@@ -584,12 +592,6 @@
       this.time = ACTION_TIME;
       this.winner = [];
       this.showBuyIn = false;
-      const gameConfig = cookie.get('gameConfig') || localStorage.getItem('gameConfig') || '';
-      this.gameConfig = JSON.parse(gameConfig);
-      console.log(this.gameConfig);
-      this.playerNum = this.gameConfig.playerNum;
-      this.smallBlind = this.gameConfig.smallBlind;
-      this.moneyType = this.gameConfig.moneyType;
     }
 
     private sendMsgHandle(msgInfo: string) {
@@ -1508,30 +1510,40 @@
   }
     // 记录
     private record() {
-      console.log('开始记录手牌');
-      // 进入gaming的UI
-      this.gaming = true;
-      // 初始化PlayerLink
-      this.initPlayerLink();
-      // set playerSize
-      this.playerSize = this.playerNum;
-      // set SB, BB,Straddle
-      this.setBlind();
-      // set game status
-      this.status = EGameStatus.GAME_START;
-      // UTG第一个行动
-      if (this.playerLink) {
-        this.currPlayerNode = this.playerLink.getNode(0);
+      console.log(this.sitLink);
+      this.checkHeroInfo();
+      if (this.setHero) {
+        console.log('开始记录手牌');
+        // 进入gaming的UI
+        this.gaming = true;
+        // 初始化PlayerLink
+        this.initPlayerLink();
+        // set playerSize
+        this.playerSize = this.playerNum;
+        // set SB, BB,Straddle
+        this.setBlind();
+        // set game status
+        this.status = EGameStatus.GAME_START;
+        // UTG第一个行动
+        if (this.playerLink) {
+          this.currPlayerNode = this.playerLink.getNode(0);
+        }
+        // console.log('currPlayerNode', this.currPlayerNode);
+        if (this.currPlayerNode) {
+          // 通过currIndex切换currPlayer
+          this.currIndex = this.currPlayerNode.node.position;
+        }
+        // console.log('currPlayer', this.currPlayer);
+        this.sendCard();
+        this.setCurrPlayerAction();
+        this.setPreFlopInfo();
+      } else {
+        this.$message.error('请设置Hero的手牌');
       }
-      // console.log('currPlayerNode', this.currPlayerNode);
-      if (this.currPlayerNode) {
-        // 通过currIndex切换currPlayer
-        this.currIndex = this.currPlayerNode.node.position;
-      }
-      // console.log('currPlayer', this.currPlayer);
-      this.sendCard();
-      this.setCurrPlayerAction();
-      this.setPreFlopInfo();
+    }
+
+    private checkHeroInfo() {
+      console.log(this.sitList);
     }
 
     private setPreFlopInfo() {
