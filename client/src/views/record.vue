@@ -58,11 +58,18 @@
     <BuyIn :showBuyIn.sync='showBuyIn'
            :min='0'
            :max='baseSize * 2000'
-           @buyIn='buyIn'></BuyIn>
+           @buyIn='buyIn'>
+    </BuyIn>
+    <InputFlop
+      :showInputFlop.sync="showInputFlop"
+      @TransferFlopToRecord="getFlop">
+    </InputFlop>
     <toast :show.sync="showMsg"
-           :text="msg"></toast>
+           :text="msg">
+    </toast>
     <record :players="players"
-            v-model="showRecord"></record>
+            v-model="showRecord">
+    </record>
     <!-- <sendMsg @send = 'sendMsgHandle' :msg-list="msgListReverse"></sendMsg> -->
 <!--    <iAudio :play="playIncome" type="income"></iAudio>-->
     <gameRecord v-model="showCommandRecord"
@@ -97,7 +104,7 @@
   import { IRoom } from '@/interface/IRoom';
   import service from '../service';
   import gameRecord from '@/components/GameRecord.vue';
-  import InputBoard from '@/components/InputBoard.vue';
+  import InputFlop from '@/components/InputFlop.vue';
   import {IGameRecord} from '@/interface/IGameRecord';
   import { IPoker, Poker } from '../core/Poker';
   import { EPlayerType, Player, IPlayer } from '../core/Player';
@@ -166,7 +173,7 @@
       toast,
       record,
       gameRecord,
-      InputBoard,
+      InputFlop,
       notice,
       iAudio,
       actionDialog,
@@ -333,6 +340,9 @@
     private autoDownload: boolean = false;
     private HandFinished: boolean = false;
     private setHero: boolean = false;
+    private showInputFlop: boolean = false;
+    private inputTurn: boolean = false;
+    private inputRiver: boolean = false;
 
     public getWinner() {
       if (this.currPlayerNode) {
@@ -513,6 +523,16 @@
           return this.removedPlayers[i];
         }
       }
+    }
+
+    private getFlop(flop: string[]) {
+      console.log('获取到子组件传来的flop', flop);
+      this.showInputFlop = false;
+      // this.handCards = handCard;
+      for (const card of flop) {
+        this.commonCard.push(card);
+      }
+      // this.setHandCard(this.currSit);
     }
 
     @Watch('actionRoundComplete')
@@ -1202,10 +1222,12 @@
       }
       if (this.status === EGameStatus.GAME_FLOP) {
         // fire card
-        this.poker.getCard();
-        for (let i = 0; i < 3; i++) {
-          this.commonCard.push(this.poker.getCard());
-        }
+        // this.poker.getCard();
+        // for (let i = 0; i < 3; i++) {
+        //   this.commonCard.push(this.poker.getCard());
+        // }
+        // TODO!!
+        this.setFlop();
         this.setSate();
         // ALLIN show handcard
         if (!this.haveShowedHandCard) {
@@ -1226,8 +1248,10 @@
       }
       if (this.status === EGameStatus.GAME_TURN) {
         // fire card
-        this.poker.getCard();
-        this.commonCard.push(this.poker.getCard());
+        // this.poker.getCard();
+        // this.commonCard.push(this.poker.getCard());
+        // TODO!!
+        // this.setTurn();
         this.setSate();
         // ALLIN show handcard
         if (!this.haveShowedHandCard) {
@@ -1248,8 +1272,10 @@
       }
       if (this.status === EGameStatus.GAME_RIVER) {
         // fire card
-        this.poker.getCard();
-        this.commonCard.push(this.poker.getCard());
+        // this.poker.getCard();
+        // this.commonCard.push(this.poker.getCard());
+        // TODO!!
+        // this.setRiver();
         this.setSate();
         // ALLIN show handcard
         if (!this.haveShowedHandCard) {
@@ -1281,6 +1307,10 @@
       //   return;
       // }
       throw new Error('error flow sendCard');
+    }
+
+    private setFlop() {
+      this.showInputFlop = true;
     }
 
     private getMaxPlayers(lastPlayers: Player[]) {
