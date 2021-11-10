@@ -28,13 +28,32 @@
         <div class="room-config-shadow" @click="showGameconfig = false"></div>
         <div class="room-config-body">
           <h1> 手牌设置</h1>
-          <el-input v-model="smallBlind" placeholder="请输入小盲" clearable>
+          <!-- <el-input v-model="smallBlind" placeholder="请输入小盲" clearable>
             <template slot="prepend">小盲:</template>
           </el-input>
           <el-input v-model="playerNum" placeholder="请输入人数" :disabled="true" clearable>
             <template slot="prepend">人数:</template>
-          </el-input>
-          <el-select v-model="moneyType" placeholder="请选择货币类型">
+          </el-input> -->
+          大小盲
+          <el-select v-model="smallBlind" placeholder="请选择大小盲" style="width:135px">
+            <el-option
+              v-for="item in smallBlindOptions"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value">
+            </el-option>
+          </el-select>
+          人 数
+          <el-select v-model="playerNum" placeholder="请选择人数" style="width:150px" :disabled="true">
+            <el-option
+              v-for="item in playerNumOptions"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value">
+            </el-option>
+          </el-select>
+          币 种
+          <el-select v-model="moneyType" placeholder="请选择币种" style="width:150px">
             <el-option
               v-for="item in moneyTypeOptions"
               :key="item.value"
@@ -126,6 +145,69 @@
           value: 'bb',
           label: 'bb',
         }];
+    private playerNumOptions = [
+        {
+          value: '6',
+          label: '6',
+        },
+        {
+          value: '7',
+          label: '7',
+        },
+        {
+          value: '8',
+          label: '8',
+        },
+        {
+          value: '9',
+          label: '9',
+        }];
+    private smallBlindOptions = [
+        {
+          value: '0.5',
+          label: '0.5/1',
+        },
+        {
+          value: '1',
+          label: '1/2',
+        },
+        {
+          value: '2',
+          label: '2/4',
+        },
+        {
+          value: '5',
+          label: '5/10',
+        },
+        {
+          value: '10',
+          label: '10/20',
+        },
+        {
+          value: '25',
+          label: '25/50',
+        },
+        {
+          value: '50',
+          label: '50/100',
+        },
+        {
+          value: '100',
+          label: '100/200',
+        },
+        {
+          value: '200',
+          label: '200/400',
+        },
+        {
+          value: '500',
+          label: '500/1000',
+        },
+        {
+          value: '1000',
+          label: '1000/2000',
+        },
+        ];
     private rules = {
           name: [
             { required: true, message: '用户名不能为空', trigger: 'change' },

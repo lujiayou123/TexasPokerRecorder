@@ -586,6 +586,7 @@
       this.showBuyIn = false;
       const gameConfig = cookie.get('gameConfig') || localStorage.getItem('gameConfig') || '';
       this.gameConfig = JSON.parse(gameConfig);
+      console.log(this.gameConfig);
       this.playerNum = this.gameConfig.playerNum;
       this.smallBlind = this.gameConfig.smallBlind;
       this.moneyType = this.gameConfig.moneyType;
