@@ -954,7 +954,7 @@
             // console.log(this.currPlayerNode.node.type === EPlayerType.BIG_BLIND
             //   && this.prevSize === this.smallBlind * 2, 'big blind', this.currPlayerNode);
             // ???
-            size = -1;
+            // size = -1;
           }
           if (command === ECommand.RAISE) {
             // console.log(size);
@@ -978,7 +978,7 @@
             let raiseInfo;
             // console.log(size);
             // console.log(prevActionSize);
-            // console.log(this.prevSize);
+            console.log('prevSize', this.prevSize);
             if (this.prevSize === 0) {
               raiseInfo = `${this.currPlayerNode.node.nickName}: bets ${this.moneyType}${size - prevActionSize}\n`;
             } else {
@@ -1012,9 +1012,10 @@
               return;
             }
             // console.log('breakPoint3');
-            // console.log('size:', size);
+            console.log('size:', size);
+            console.log('###prevSize###', this.prevSize);
             this.prevSize = command === ECommand.FOLD ? this.prevSize : size;
-            // console.log('prevSize:', this.prevSize);
+            console.log('###prevSize###', this.prevSize);
             this.nextPlayer();
             this.setCurrPlayerAction();
             // console.log('breakPoint4');
