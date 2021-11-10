@@ -97,6 +97,7 @@
   import { IRoom } from '@/interface/IRoom';
   import service from '../service';
   import gameRecord from '@/components/GameRecord.vue';
+  import InputBoard from '@/components/InputBoard.vue';
   import {IGameRecord} from '@/interface/IGameRecord';
   import { IPoker, Poker } from '../core/Poker';
   import { EPlayerType, Player, IPlayer } from '../core/Player';
@@ -165,6 +166,7 @@
       toast,
       record,
       gameRecord,
+      InputBoard,
       notice,
       iAudio,
       actionDialog,
@@ -330,7 +332,7 @@
     private haveShowedHandCard: boolean = false;
     private autoDownload: boolean = false;
     private HandFinished: boolean = false;
-    private setHero: boolean = true;
+    private setHero: boolean = false;
 
     public getWinner() {
       if (this.currPlayerNode) {
@@ -704,8 +706,12 @@
           if (this.status === EGameStatus.GAME_ACTION && this.currPlayerNode.next) {
           const commands = commandString.split(':');
           const command = commands[0];
-          // console.log('command', command);
+          // console.log('commands', commands);
           let size = Number(commands[1]);
+          if (size !== size) {
+            size = 0;
+          }
+          // console.log('size', size);
           if (command === ECommand.ALL_IN) {
             // console.log('node', this.currPlayerNode.node);
             // console.log('currPlayer', this.currPlayer);
@@ -766,7 +772,7 @@
             this.currPlayerNode.node.status = -1;
             this.currPlayerNode.node.actionSize = 0;
             this.removePlayer(this.currPlayerNode.node);
-            // console.log('this.playerLink?.link', this.playerLink?.link);
+            console.log('this.playerLink?.link', this.playerLink?.link);
             const foldInfo = `${this.currPlayerNode.node.nickName}: folds\n`;
             this.handInfo.push(foldInfo);
             // 最后的Summary
@@ -925,7 +931,7 @@
               this.actionComplete();
               return;
             }
-            console.log(size);
+            console.log('size:', size);
             this.prevSize = command === ECommand.FOLD ? this.prevSize : size;
             // console.log('prevSize:', this.prevSize);
             this.nextPlayer();
@@ -1295,7 +1301,9 @@
       // test
       // this.commonCard = [ 'j4', 'k4', 'l4', 'm4', 'i4', ];
       this.allPlayer.map((p) => {
-        p.pokerStyle = new PokerStyle([ ...p.getHandCard(), ...this.commonCard ], this.isShort).getPokerWeight();
+        if (p.handCard && p.handCard.length === 2) {
+          p.pokerStyle = new PokerStyle([ ...p.getHandCard(), ...this.commonCard ], this.isShort).getPokerWeight();
+        }
         return p;
       });
     }
@@ -1491,8 +1499,10 @@
       IPlayers.push(iplayer);
       sitLinkHead = sitLinkHead.next;
     }
+    console.log('IPlayers', IPlayers);
     // init playerLink
     this.playerLink = this.setPlayer(IPlayers);
+    console.log('playerLink', this.playerLink);
     // set this.players
     let playerLinkHead = this.playerLink.link;
     // console.log('playerLinkHead', playerLinkHead);
@@ -1510,13 +1520,14 @@
   }
     // 记录
     private record() {
-      console.log(this.sitLink);
+      // 先检查Hero手牌设置没
       this.checkHeroInfo();
+      // this.setHero = true;
       if (this.setHero) {
         console.log('开始记录手牌');
         // 进入gaming的UI
         this.gaming = true;
-        // 初始化PlayerLink
+        // 用sitLink初始化PlayerLink
         this.initPlayerLink();
         // set playerSize
         this.playerSize = this.playerNum;
@@ -1534,16 +1545,28 @@
           this.currIndex = this.currPlayerNode.node.position;
         }
         // console.log('currPlayer', this.currPlayer);
-        this.sendCard();
+        // this.sendCard();
+        this.syncHandCard();
+        this.setSate();
         this.setCurrPlayerAction();
         this.setPreFlopInfo();
+        // playerLink没手牌信息
+        console.log(this.playerLink);
       } else {
         this.$message.error('请设置Hero的手牌');
       }
     }
 
     private checkHeroInfo() {
-      console.log(this.sitList);
+      let sitHead = this.sitLink;
+      console.log('sitHead:', sitHead);
+      for (let i = 0; i < this.playerNum; i++) {
+        if (sitHead.node.player.nickName === 'Hero') {
+          this.setHero = true;
+          return;
+        }
+        sitHead = sitHead.next;
+      }
     }
 
     private setPreFlopInfo() {
@@ -1565,6 +1588,7 @@
       console.log(platformInfo);
       console.log(tableInfo);
       for (let i = 0; i < this.playerNum; i++) {
+        // this.Hero = sitHead.node.player;
         if (sitHead.node.player.nickName === 'Hero') {
           this.Hero = sitHead.node.player;
         }
@@ -1584,9 +1608,11 @@
       const preFlopFlag = `*** HOLE CARDS ***\n`;
       this.handInfo.push(preFlopFlag);
       console.log(preFlopFlag);
-      const heroHandCardInfo = `Dealt to Hero [${this.decodeHandCard(this.Hero.handCard[0])} ${this.decodeHandCard(this.Hero.handCard[1])}]`;
-      this.handInfo.push(heroHandCardInfo);
-      console.log(heroHandCardInfo);
+      if (this.Hero) {
+        const heroHandCardInfo = `Dealt to Hero [${this.decodeHandCard(this.Hero.handCard[0])} ${this.decodeHandCard(this.Hero.handCard[1])}]`;
+        this.handInfo.push(heroHandCardInfo);
+        console.log(heroHandCardInfo);
+      }
       // console.log(this.Hero.handCard);
     }
 
@@ -1829,7 +1855,8 @@
     private initSitLink() {
       // this.prevSize = this.smallBlind * 2;
       // 0~9的随机数
-      const heroSeed = Math.floor(Math.random() * 9);
+      // const heroSeed = Math.floor(Math.random() * 9);
+      const heroSeed = 100;
       const sb = this.smallBlind;
       const bb = 2 * sb;
       const sitListMap = this.sitList || [];
@@ -1928,7 +1955,7 @@
       }
 
     private logHandInfo() {
-      console.log('handInfo', this.handInfo);
+      // console.log('handInfo', this.handInfo);
       // PokerStars Zoom Hand #198787544: Hold'em No Limit  ($0.5/$1) - 2021/10/8 16:49:0
       const now = new Date();
       const year = now.getFullYear(); // 得到年份

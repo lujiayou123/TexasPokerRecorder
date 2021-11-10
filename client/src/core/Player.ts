@@ -14,6 +14,7 @@ export interface IPlayer {
   actionCommand: string;
   delayCount?: number;
   id?: number;
+  handCard: string[];
 }
 
 export enum ECommand {
@@ -64,6 +65,7 @@ export class Player {
     this.userId = config.userId;
     this.socketId = config.socketId;
     this.nickName = config.nickName;
+    this.handCard = config.handCard;
     if (this.position === 0) {
       this.type = EPlayerType.UNDER_THE_GUN;
     }

@@ -86,12 +86,12 @@
     // @Prop() private handCard1!: string;
     // @Prop() private handCard2!: string;
     // @Prop() private handCard!: string[];
-    private handCard1: string = 'A';
-    private handCard2: string = 'A';
-    private color1: string = 's';
-    private color2: string = 'h';
+    private handCard1: string = '';
+    private handCard2: string = '';
+    private color1: string = '';
+    private color2: string = '';
     private handCard: string[] = [];
-    private IsHero: boolean = true;
+    private IsHero: boolean = false;
     private cardOptions = [
         {
           value: 'A',
