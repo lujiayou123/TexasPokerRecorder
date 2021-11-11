@@ -349,7 +349,8 @@
     private SummarySeatInfo: string[] = [];
     private RaiseNum: number = this.smallBlind * 2;
     private haveShowedHandCard: boolean = false;
-    private autoDownload: boolean = false;
+    // 自动下载手牌的txt
+    private autoDownload: boolean = true;
     private HandFinished: boolean = false;
     private setHero: boolean = false;
     private showInputFlop: boolean = false;
@@ -1229,6 +1230,9 @@
       this.logHandInfo();
       // console.log(this.winner);
       // this.newHand();
+      setTimeout(() => {
+        location. reload();
+      }, 5000);
     }
 
     private newHand() {
