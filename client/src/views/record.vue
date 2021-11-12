@@ -356,6 +356,8 @@
     private showInputFlop: boolean = false;
     private showInputTurn: boolean = false;
     private showInputRiver: boolean = false;
+    private haveSetRiverFlagInfo: boolean = false;
+    private isAllinBoardComplete: boolean = false;
     // private FlopBeenSet: boolean = false;
     // private TurnBeenSet: boolean = false;
     // private RiverBeenSet: boolean = false;
@@ -563,8 +565,8 @@
 
     @Watch('showInputFlop')
     private showInputFlopChange(oldVal: boolean, newVal: boolean) {
-      console.log('oldVal', oldVal);
-      console.log('newVal', newVal);
+      console.log('FLOP oldVal', newVal);
+      console.log('FLOP newVal', oldVal);
       if (!oldVal && newVal) {
         const flopInfoFlag = `*** FLOP *** [${this.decodeHandCard(this.commonCard[0])} ${this.decodeHandCard(this.commonCard[1])} ${this.decodeHandCard(this.commonCard[2])}]\n`;
         this.handInfo.push(flopInfoFlag);
@@ -573,6 +575,38 @@
       // console.log(oldVal);
       // console.log(newVal);
       // console.log('showInputFlop', this.showInputFlop);
+    }
+
+    @Watch('isAllinBoardComplete')
+    private AllinComplete(newVal: boolean, oldVal: boolean) {
+      // console.log('oldVal', oldVal);
+      // console.log('newVal', newVal);
+      this.status = EGameStatus.GAME_SHOWDOWN;
+      if (oldVal === false && newVal === true) {
+        setTimeout(() => {
+        this.pokerGameOver();
+      }, 300);
+      }
+    }
+
+    @Watch('commonCard.length')
+    private commonCardChange(newVal: number, oldVal: number) {
+      console.log('oldVal', oldVal);
+      console.log('newVal', newVal);
+      // 只在全部allin的时候生效
+      if (this.playerSize === 0) {
+        if (oldVal === 0 && newVal === 3) {
+          this.setTurn();
+        } else if (oldVal === 3 && newVal === 4) {
+          this.setRiver();
+        } else if (oldVal === 4 && newVal === 5) {
+          // this.isAllinBoardComplete = true;
+          // setTimeout(() => {
+          //   this.pokerGameOver();
+          // }, 300);
+          // this.pokerGameOver();
+        }
+      }
     }
 
     @Watch('showInputTurn')
@@ -591,6 +625,7 @@
         const riverInfoFlag = `*** RIVER *** [${this.decodeHandCard(this.commonCard[0])} ${this.decodeHandCard(this.commonCard[1])} ${this.decodeHandCard(this.commonCard[2])} ${this.decodeHandCard(this.commonCard[3])}] [${this.decodeHandCard(this.commonCard[4])}]\n`;
         this.handInfo.push(riverInfoFlag);
         console.log(riverInfoFlag);
+        this.isAllinBoardComplete = true;
       }
       // console.log('showInputRiver', this.showInputRiver);
     }
@@ -1134,20 +1169,15 @@
       // 如果全部allin，this.playerSize=0，直接pokerGameOver，就跳过了发牌
       if (this.playerSize === 0 && this.allInPlayers.length >= 2) {
         if (this.status === EGameStatus.GAME_FLOP) {
-            this.status = EGameStatus.GAME_FLOP;
-            this.sendCard();
-            this.status = EGameStatus.GAME_TURN;
-            this.sendCard();
-            this.status = EGameStatus.GAME_RIVER;
-            this.sendCard();
+          // TODO!发5张flop+turn+river
+          this.setFlop();
+          // console.log('setFlop  TODO!发5张flop+turn+river');
         } else if (this.status === EGameStatus.GAME_TURN) {
-          this.status = EGameStatus.GAME_TURN;
-          this.sendCard();
-          this.status = EGameStatus.GAME_RIVER;
-          this.sendCard();
+          // TODO!发2张turn + river
+          this.setTurn();
         } else if (this.status === EGameStatus.GAME_RIVER) {
-          this.status = EGameStatus.GAME_RIVER;
-          this.sendCard();
+          // TODO!发1张river
+          this.setRiver();
         }
       }
       // 河牌shoudown或者只剩一名玩家时，结束游戏

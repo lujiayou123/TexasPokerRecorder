@@ -50,7 +50,7 @@
     // @Prop() private handCard2!: string;
     // @Prop() private handCard!: string[];
     private card1: string = '6';
-    private color1: string = 's';
+    private color1: string = 'd';
     private handCard: string[] = [];
     private Turn: string = '';
     private IsHero: boolean = false;

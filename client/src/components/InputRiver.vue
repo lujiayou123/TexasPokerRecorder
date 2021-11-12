@@ -49,8 +49,8 @@
     // @Prop() private handCard1!: string;
     // @Prop() private handCard2!: string;
     // @Prop() private handCard!: string[];
-    private card1: string = '6';
-    private color1: string = 's';
+    private card1: string = '7';
+    private color1: string = 'd';
     private handCard: string[] = [];
     private River: string = '';
     private IsHero: boolean = false;

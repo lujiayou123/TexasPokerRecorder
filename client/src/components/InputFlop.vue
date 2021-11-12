@@ -88,12 +88,12 @@
     // @Prop() private handCard1!: string;
     // @Prop() private handCard2!: string;
     // @Prop() private handCard!: string[];
-    private card1: string = '3';
-    private card2: string = '4';
-    private card3: string = '5';
-    private color1: string = 'h';
-    private color2: string = 'c';
-    private color3: string = 'd';
+    private card1: string = '8';
+    private card2: string = '8';
+    private card3: string = '8';
+    private color1: string = 's';
+    private color2: string = 'h';
+    private color3: string = 'c';
     private handCard: string[] = [];
     private flop: string[] = [];
     private IsHero: boolean = false;
