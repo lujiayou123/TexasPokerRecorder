@@ -351,6 +351,8 @@
     private haveShowedHandCard: boolean = false;
     // 自动下载手牌的txt
     private autoDownload: boolean = true;
+    private autoRefresh: boolean = true;
+    //
     private HandFinished: boolean = false;
     private setHero: boolean = false;
     private showInputFlop: boolean = false;
@@ -358,6 +360,7 @@
     private showInputRiver: boolean = false;
     private haveSetRiverFlagInfo: boolean = false;
     private isAllinBoardComplete: boolean = false;
+    private rawPot: number = 0;
     // private FlopBeenSet: boolean = false;
     // private TurnBeenSet: boolean = false;
     // private RiverBeenSet: boolean = false;
@@ -1201,6 +1204,12 @@
     }
 
     private counting() {
+      // 强行chop
+      this.rawPot = this.pot;
+      const winnerNum = this.winner.length;
+      if (winnerNum > 1) {
+        this.pot = this.pot / winnerNum;
+      }
       let prevEvPot = 0;
       this.winner.forEach((winnerList, key) => {
         winnerList.sort((prev, next) => prev.inPot - next.inPot);
@@ -1289,9 +1298,11 @@
       this.logHandInfo();
       // console.log(this.winner);
       // this.newHand();
-      setTimeout(() => {
-        location. reload();
-      }, 5000);
+      if (this.autoRefresh) {
+        setTimeout(() => {
+          location. reload();
+        }, 5000);
+      }
     }
 
     private newHand() {
@@ -1780,7 +1791,7 @@
     private Summary() {
       const summaryFlag = `*** SUMMARY ***\n`;
       this.handInfo.push(summaryFlag);
-      const potInfo = `Total pot ${this.moneyType}${this.pot} | Rake ${this.moneyType}0 | Jackpot ${this.moneyType}0 | Bingo ${this.moneyType}0 | Rake ${this.moneyType}0\n`;
+      const potInfo = `Total pot ${this.moneyType}${this.rawPot} | Rake ${this.moneyType}0 | Jackpot ${this.moneyType}0 | Bingo ${this.moneyType}0 | Rake ${this.moneyType}0\n`;
       this.handInfo.push(potInfo);
       let boardInfo = '';
       switch (this.commonCard.length) {
