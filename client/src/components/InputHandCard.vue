@@ -91,7 +91,7 @@
     private color1: string = 's';
     private color2: string = 'h';
     private handCard: string[] = [];
-    private IsHero: boolean = true;
+    private IsHero: boolean = false;
     private cardOptions = [
         {
           value: 'A',

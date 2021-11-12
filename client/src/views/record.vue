@@ -541,7 +541,7 @@
       }
     }
 
-    private getFlop(flop: string[]) {
+    private async getFlop(flop: string[]) {
       console.log('获取到子组件传来的flop', flop);
       this.showInputFlop = false;
       for (const card of flop) {
@@ -549,13 +549,13 @@
       }
     }
 
-    private getTurn(turn: string) {
+    private async getTurn(turn: string) {
       console.log('获取到子组件传来的turn', turn);
       this.showInputTurn = false;
       this.commonCard.push(turn);
     }
 
-    private getRiver(river: string) {
+    private async getRiver(river: string) {
       console.log('获取到子组件传来的river', river);
       this.showInputRiver = false;
       this.commonCard.push(river);
@@ -807,14 +807,15 @@
             let raiseInfo;
             // console.log('node', this.currPlayerNode.node);
             // console.log('prevActionSize', prevActionSize);
-            console.log('size', size);
+            // console.log('size', size);
             // console.log('counter', this.currPlayerNode.node.counter);
-            console.log('prevSize', this.prevSize);
-            console.log('position', this.currPlayerNode.node.type);
+            // console.log('prevSize', this.prevSize);
+            // console.log('position', this.currPlayerNode.node.type);
             // console.log('inpot', this.currPlayerNode.node.inPot);
             this.removePlayer(this.currPlayerNode.node);
             if (this.prevSize === 0) {
               raiseInfo = `${this.currPlayerNode.node.nickName}: bets ${this.moneyType}${size} and is all-in\n`;
+              this.pot += size - prevActionSize;
             } else {
               if (this.currPlayerNode.node.counter > this.prevSize) {
                 // allin 但是筹码上个人多，比如上个人allin100，但是我all了150
@@ -834,8 +835,8 @@
             // size，下注量
             size = this.prevSize;
             const actionSize = this.currPlayerNode.node.actionSize >= 0 ? this.currPlayerNode.node.actionSize : 0;
-            console.log('size', size);
-            console.log('call----------', actionSize);
+            // console.log('size', size);
+            // console.log('call----------', actionSize);
             if (this.currPlayer) {
               this.currPlayer.actionSize = size;
               this.currPlayer.counter -= size - actionSize;
@@ -843,7 +844,7 @@
             this.pot += size - actionSize;
             const callInfo = `${this.currPlayerNode.node.nickName}: calls ${this.moneyType}${size - actionSize}\n`;
             this.handInfo.push(callInfo);
-            console.log(callInfo);
+            // console.log(callInfo);
           }
           if (command === ECommand.FOLD) {
             // if (this.currPlayer) {
@@ -853,7 +854,7 @@
             this.currPlayerNode.node.status = -1;
             this.currPlayerNode.node.actionSize = 0;
             this.removePlayer(this.currPlayerNode.node);
-            console.log('this.playerLink?.link', this.playerLink?.link);
+            // console.log('this.playerLink?.link', this.playerLink?.link);
             const foldInfo = `${this.currPlayerNode.node.nickName}: folds\n`;
             this.handInfo.push(foldInfo);
             // 最后的Summary
@@ -939,7 +940,7 @@
                 break;
             }
             this.SummarySeatInfo.push(summarySeatInfo);
-            console.log(foldInfo);
+            // console.log(foldInfo);
           }
           if (command === ECommand.CHECK) {
             // prev player must be check
@@ -949,13 +950,14 @@
                 && this.prevSize === this.smallBlind * 2))) {
               throw new Error('incorrect action: check');
             }
+            // this.currPlayerNode.node.actionSize = 0;
             const checkInfo = `${this.currPlayerNode.node.nickName}: checks\n`;
             this.handInfo.push(checkInfo);
-            console.log(checkInfo);
+            // console.log(checkInfo);
             // console.log(this.currPlayerNode.node.type === EPlayerType.BIG_BLIND
             //   && this.prevSize === this.smallBlind * 2, 'big blind', this.currPlayerNode);
             // ???
-            // size = -1;
+            size = -1;
           }
           if (command === ECommand.RAISE) {
             // console.log(size);
@@ -969,7 +971,7 @@
             }
             // prevActionSize表示当前玩家已经投入的筹码
             const prevActionSize = this.currPlayerNode.node.actionSize >= 0 ? this.currPlayerNode.node.actionSize : 0;
-            console.log('prevActionSize', this.currPlayerNode.node.actionSize);
+            // console.log('prevActionSize', this.currPlayerNode.node.actionSize);
             if (this.currPlayer) {
               this.currPlayer.actionSize = size;
               this.currPlayer.counter -= size - prevActionSize;
@@ -979,7 +981,7 @@
             let raiseInfo;
             // console.log(size);
             // console.log(prevActionSize);
-            console.log('prevSize', this.prevSize);
+            // console.log('prevSize', this.prevSize);
             if (this.prevSize === 0) {
               raiseInfo = `${this.currPlayerNode.node.nickName}: bets ${this.moneyType}${size - prevActionSize}\n`;
             } else {
@@ -1000,23 +1002,27 @@
             // console.log('breakPoint2');
             // console.log(command, (nextPlayer.actionSize === this.prevSize
             //   && (nextPlayer.actionSize === this.currPlayerNode.node.actionSize || command === ECommand.FOLD)
-            //   && this.prevSize !== this.smallBlind * 2 && this.prevSize !== 0), 'tst', size, nextPlayer.actionSize, this.prevSize);
+            //   && this.prevSize !== this.smallBlind * 2 && this.prevSize !== 0), 'tst',
+            //  size, nextPlayer.actionSize, this.prevSize);
             // all check actionSize === -1
             // all player allin
             // only 2 player, curr player fold, next player already action
             // only one player,one player fold,other player allin
             // pre flop big blind check and other player call
             // pre flop big blind fold and other player call
+            // console.log('currPlayer', this.currPlayerNode.node);
+            // console.log('nextPlayer', nextPlayer);
+            // console.log('###prevSize###', this.prevSize);
             if (this.isActionComplete(command, nextPlayer, size)) {
               console.log('actionComplete');
               this.actionComplete();
               return;
             }
             // console.log('breakPoint3');
-            console.log('size:', size);
-            console.log('###prevSize###', this.prevSize);
+            // console.log('size:', size);
+            // console.log('###prevSize###', this.prevSize);
             this.prevSize = command === ECommand.FOLD ? this.prevSize : size;
-            console.log('###prevSize###', this.prevSize);
+            // console.log('###prevSize###', this.prevSize);
             this.nextPlayer();
             this.setCurrPlayerAction();
             // console.log('breakPoint4');
@@ -1043,6 +1049,7 @@
     }
 
     private isActionComplete(command: any, nextPlayer: Player, size: number) {
+      console.log('playerSize', this.playerSize);
       if (this.currPlayerNode) {
         if (this.playerSize === 0) {
           return true;
@@ -1062,6 +1069,8 @@
         && nextPlayer.actionSize === size && size === this.prevSize) {
         return true;
       }
+        console.log(nextPlayer.actionSize);
+        console.log(this.prevSize);
         if (nextPlayer.actionSize === this.prevSize
         && (this.prevSize === this.currPlayerNode.node.actionSize || command === ECommand.FOLD)
         && this.prevSize !== this.smallBlind * 2 && this.prevSize !== 0) {
@@ -1122,7 +1131,27 @@
       this.setSate();
       // console.log('break point3');
       // console.log(this.playerSize, 'playerS-------3', this.playerLink);
-      if (this.status === EGameStatus.GAME_SHOWDOWN || this.playerSize <= 1) {
+      // 如果全部allin，this.playerSize=0，直接pokerGameOver，就跳过了发牌
+      if (this.playerSize === 0 && this.allInPlayers.length >= 2) {
+        if (this.status === EGameStatus.GAME_FLOP) {
+            this.status = EGameStatus.GAME_FLOP;
+            this.sendCard();
+            this.status = EGameStatus.GAME_TURN;
+            this.sendCard();
+            this.status = EGameStatus.GAME_RIVER;
+            this.sendCard();
+        } else if (this.status === EGameStatus.GAME_TURN) {
+          this.status = EGameStatus.GAME_TURN;
+          this.sendCard();
+          this.status = EGameStatus.GAME_RIVER;
+          this.sendCard();
+        } else if (this.status === EGameStatus.GAME_RIVER) {
+          this.status = EGameStatus.GAME_RIVER;
+          this.sendCard();
+        }
+      }
+      // 河牌shoudown或者只剩一名玩家时，结束游戏
+      if (this.status === EGameStatus.GAME_SHOWDOWN || this.playerSize === 1) {
         setTimeout(() => {
           this.pokerGameOver();
         }, 300);
@@ -1377,17 +1406,17 @@
     }
 
     private getMaxPlayers(lastPlayers: Player[]) {
-      const _maxPlayers: Player[] = [];
+      const maxPlayers: Player[] = [];
       const maxPlayer = lastPlayers.reduce((acc, cur) => {
         return this.compareCard(acc, cur) === 1 ? acc : cur;
       });
       // has many winner equal max player
       lastPlayers.forEach((p) => {
         if (this.compareCard(p, maxPlayer) === 0) {
-          _maxPlayers.push(p);
+          maxPlayers.push(p);
         }
       });
-      return _maxPlayers;
+      return maxPlayers;
     }
 
     private getPlayerPokerStyle() {
