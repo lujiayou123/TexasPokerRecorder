@@ -21,7 +21,7 @@
     ></common-card>
     <notice :message-list="messageList"></notice>
     <div class="winner-poke-style"
-         v-show="gameOver && winner[0][0].handCard.length > 0">
+         v-show="gameOver && winner[0][0].handCard && winner[0][0].handCard.length > 0">
       <!-- {{PokeStyle(winner[0] && winner[0][0] && winner[0][0].handCard)}} WIN!! -->
       {{winner[0] && winner[0][0] && winner[0][0].nickName}} WIN!!
     </div>
@@ -351,7 +351,7 @@
     private haveShowedHandCard: boolean = false;
     // 自动下载手牌的txt
     private autoDownload: boolean = true;
-    private autoRefresh: boolean = false;
+    private autoRefresh: boolean = true;
     //
     private HandFinished: boolean = false;
     private setHero: boolean = false;

@@ -123,9 +123,9 @@ import { IPlayer } from '@/interface/IPlayer';
     // if (this.prevSize > 1) {
     //   size = this.prevSize * 4;
     // }
-    console.log('this.prevSize', this.prevSize);
-    console.log('size', size);
-    console.log('this.baseSize', this.baseSize);
+    // console.log('this.prevSize', this.prevSize);
+    // console.log('size', size);
+    // console.log('this.baseSize', this.baseSize);
     // return size === this.baseSize * 2 ? [ size, size * 2, size * 2.5, size * 3, size * 4] : [ 0.5 * size, 0.75 * size, size ];
     // 如果size = 大盲，[size,2x,3x]
     // size != 大盲, [0.5x,0.75x,1x]
