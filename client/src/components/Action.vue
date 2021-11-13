@@ -108,11 +108,38 @@ import { IPlayer } from '@/interface/IPlayer';
   }
 
   get raiseSizeMap() {
-    let size = this.pot > this.baseSize * 4 ? this.pot : this.baseSize * 2;
-    if (this.prevSize > 1) {
-      size = this.prevSize * 4;
+    // 底池如果大于2bb，size = pot,否则，size = 1bb
+    // const size = this.pot > this.baseSize * 4 ? this.pot : this.baseSize * 2;
+    const pot = this.pot;
+    const prevSize = this.prevSize;
+    const bb = this.baseSize * 2;
+    let size = 0;
+    if (pot > bb * 2) {
+      size = pot;
+    } else {
+      size = bb;
     }
-    return size === this.baseSize * 2 ? [ size, 2 * size, 3 * size ] : [ 0.5 * size, 0.75 * size, size ];
+    // 翻前
+    // if (this.prevSize > 1) {
+    //   size = this.prevSize * 4;
+    // }
+    console.log('this.prevSize', this.prevSize);
+    console.log('size', size);
+    console.log('this.baseSize', this.baseSize);
+    // return size === this.baseSize * 2 ? [ size, size * 2, size * 2.5, size * 3, size * 4] : [ 0.5 * size, 0.75 * size, size ];
+    // 如果size = 大盲，[size,2x,3x]
+    // size != 大盲, [0.5x,0.75x,1x]
+    if (size === bb) {
+      return [size * 2, size * 2.5, size * 3, size * 4, size * 5];
+    } else {
+      return [
+        ((prevSize + pot) * 0.33 + prevSize) > prevSize * 2 ? ((prevSize + pot) * 0.33 + prevSize) : prevSize * 2,
+        ((prevSize + pot) * 0.5 + prevSize),
+        ((prevSize + pot) * 0.66 + prevSize),
+        ((prevSize + pot) * 1 + prevSize),
+        ((prevSize + pot) * 1.5 + prevSize),
+      ];
+    }
   }
 
   get canActionSize() {

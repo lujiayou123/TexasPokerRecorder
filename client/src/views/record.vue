@@ -377,6 +377,9 @@
           this.winner.push([ winner ]);
           // console.log('winner', winner);
           const uncalledBetInfo = `Uncalled bet (${this.moneyType}${this.RaiseNum}) returned to ${winner.nickName}\n`;
+          // console.log('RaiseNum', this.RaiseNum);
+          this.pot = this.pot - this.RaiseNum;
+          // console.log('POT', this.pot);
           this.handInfo.push(uncalledBetInfo);
           return;
         }
@@ -619,8 +622,10 @@
       // allin show牌
       if (oldVal === 1 && newVal === 0) {
         for (const player of this.allInPlayers) {
-          const showHandInfo = `${player.nickName}: shows [${this.decodeHandCard(player.handCard[0])} ${this.decodeHandCard(player.handCard[1])}]\n`;
-          this.handInfo.push(showHandInfo);
+          if (player.handCard && player.handCard.length === 2) {
+            const showHandInfo = `${player.nickName}: shows [${this.decodeHandCard(player.handCard[0])} ${this.decodeHandCard(player.handCard[1])}]\n`;
+            this.handInfo.push(showHandInfo);
+          }
         }
       }
     }
@@ -855,12 +860,13 @@
             // 已经下注的量,30
             const prevActionSize = this.currPlayerNode.node.actionSize >= 0 ? this.currPlayerNode.node.actionSize : 0;
             size = this.currPlayerNode.node.counter + prevActionSize;
-            // size = this.currPlayer?.actionSize;
+            // this.RaiseNum = size - prevActionSize - this.prevSize;
+            this.RaiseNum = size - this.prevSize;
+            console.log('prevActionSize', prevActionSize);
+            console.log('size', size);
+            console.log('RaiseNum', this.RaiseNum);
             this.currActionAllinPlayer.push(this.currPlayerNode.node);
             let raiseInfo;
-            // console.log('node', this.currPlayerNode.node);
-            // console.log('prevActionSize', prevActionSize);
-            // console.log('size', size);
             // console.log('counter', this.currPlayerNode.node.counter);
             // console.log('prevSize', this.prevSize);
             // console.log('position', this.currPlayerNode.node.type);
@@ -1030,7 +1036,8 @@
               this.currPlayer.counter -= size - prevActionSize;
             }
             this.pot += (size - prevActionSize);
-            this.RaiseNum = size - prevActionSize - this.prevSize;
+            // this.RaiseNum = size - prevActionSize - this.prevSize;
+            this.RaiseNum = size - this.prevSize;
             let raiseInfo;
             // console.log(size);
             // console.log(prevActionSize);
@@ -1200,6 +1207,12 @@
       }
       // 河牌shoudown或者只剩一名玩家时，结束游戏
       if (this.status === EGameStatus.GAME_SHOWDOWN || this.playerSize === 1) {
+        setTimeout(() => {
+          this.pokerGameOver();
+        }, 300);
+      }
+      // 一个玩家allin，其余玩家弃牌
+      if (this.playerSize === 0 && this.allInPlayers.length === 1) {
         setTimeout(() => {
           this.pokerGameOver();
         }, 300);
@@ -1796,7 +1809,7 @@
       this.handInfo.push(preFlopFlag);
       // console.log(preFlopFlag);
       if (this.Hero) {
-        const heroHandCardInfo = `Dealt to Hero [${this.decodeHandCard(this.Hero.handCard[0])} ${this.decodeHandCard(this.Hero.handCard[1])}]`;
+        const heroHandCardInfo = `Dealt to Hero [${this.decodeHandCard(this.Hero.handCard[0])} ${this.decodeHandCard(this.Hero.handCard[1])}]\n`;
         this.handInfo.push(heroHandCardInfo);
         // console.log(heroHandCardInfo);
       }
@@ -1867,6 +1880,23 @@
             }
             this.SummarySeatInfo.push(summarySeatInfo);
           }
+        } else if (this.playerSize === 0 && this.allInPlayers.length === 1) {
+          let summarySeatInfo = '';
+          switch (this.allInPlayers[0].type) {
+            case 'BTN':
+              summarySeatInfo = `Seat ${this.allInPlayers[0].position + 1}: ${this.allInPlayers[0].nickName} (button) collected (${this.moneyType}${this.pot})\n`;
+              break;
+            case 'SB':
+              summarySeatInfo = `Seat ${this.allInPlayers[0].position + 1}: ${this.allInPlayers[0].nickName} (small blind) collected (${this.moneyType}${this.pot})\n`;
+              break;
+            case 'BB':
+              summarySeatInfo = `Seat ${this.allInPlayers[0].position + 1}: ${this.allInPlayers[0].nickName} (big blind) collected (${this.moneyType}${this.pot})\n`;
+              break;
+            default:
+              summarySeatInfo = `Seat ${this.allInPlayers[0].position + 1}: ${this.allInPlayers[0].nickName} collected (${this.moneyType}${this.pot})\n`;
+              break;
+          }
+          this.SummarySeatInfo.push(summarySeatInfo);
         } else {
           // 没有ALLIN
           console.log('多名玩家摊牌');
