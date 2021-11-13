@@ -22,7 +22,7 @@ interface IPokerStyle {
 
 export class PokerStyle implements IPokerStyle {
   cards: string[] = [];
-  flushObj = {
+  flushObj: { [key: number]: string[] } = {
     1: [] as string[],
     2: [] as string[],
     3: [] as string[],
@@ -33,7 +33,7 @@ export class PokerStyle implements IPokerStyle {
   straightArr: string[] = [];
   pokerStyle: string[] = [ '0', '0', '0', '0', '0', '0', '0', '0', '0', '0' ];
   numObj: Map<string, number> = new Map(
-    POKER_STR.split('').map(m => [ m, 0 ]));
+    POKER_STR.split('').map((m) => [ m, 0 ]));
 
   constructor(cards: string[], isShort= false) {
     this.cards = sort(cards);
@@ -56,7 +56,8 @@ export class PokerStyle implements IPokerStyle {
     const highCard = [];
 
     while (i < this.cards.length) {
-      const color = this.cards[i][1];
+      // const color = this.cards[i][1];
+      const color = Number(this.cards[i][1]);
       const num = this.cards[i][0];
       this.straightArr.push(this.cards[i][0]);
       this.flushObj[color].push(num);
@@ -226,7 +227,7 @@ export class PokerStyle implements IPokerStyle {
         valueStyle = style;
       }
     });
-    const cards = this.cards.filter(card => {
+    const cards = this.cards.filter((card) => {
       if (isFlush) {
         return valueStyle.indexOf(card[0]) > -1 && card[1] === this.flushColor;
       }
