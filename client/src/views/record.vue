@@ -1016,7 +1016,8 @@
             // console.log(this.currPlayerNode.node.type === EPlayerType.BIG_BLIND
             //   && this.prevSize === this.smallBlind * 2, 'big blind', this.currPlayerNode);
             // ???
-            size = -1;
+            // size = -1;
+            size = 0;
           }
           if (command === ECommand.RAISE) {
             // console.log(size);
