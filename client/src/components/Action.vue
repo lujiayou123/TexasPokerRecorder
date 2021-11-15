@@ -243,8 +243,10 @@ import { IPlayer } from '@/interface/IPlayer';
       .raise-size {
         position: absolute;
         top: -7vh;
-        left: 50%;
-        width: 53vw;
+        left: 35%;
+        // width: 53vw;
+        width: 90%;
+        // margin-left: -26.4vw;
         margin-left: -26.4vw;
         text-align: center;
 
