@@ -350,7 +350,7 @@
     private RaiseNum: number = this.smallBlind * 2;
     private haveShowedHandCard: boolean = false;
     // 自动下载手牌的txt
-    private autoDownload: boolean = true;
+    private autoDownload: boolean = false;
     private autoRefresh: boolean = true;
     //
     private HandFinished: boolean = false;
@@ -1773,7 +1773,7 @@
     private setPreFlopInfo() {
       const now = new Date();
       const year = now.getFullYear(); // 得到年份
-      const month = now.getMonth(); // 得到月份
+      const month = now.getMonth() + 1; // 得到月份
       const day = now.getDate(); // 得到日期
       const hour = now.getHours(); // 得到小时数
       const minute = now.getMinutes(); // 得到分钟数
@@ -2184,6 +2184,10 @@
       const second = now.getSeconds(); // 得到秒数
       const fileName = `Hand${year}${month}${day}${hour}${minute}${second}.txt`;
       let text = '';
+      //
+      service.saveHandInfo(this.handInfo, localStorage.getItem('nickName'));
+      //
+      console.log('nickName:', localStorage.getItem('nickName'));
       const length = this.handInfo.length;
       for (let i = 0; i < length; i++) {
         const line = this.handInfo[i];

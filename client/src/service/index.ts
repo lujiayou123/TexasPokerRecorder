@@ -1,4 +1,6 @@
 import request from '../utils/request';
+import myRequest from '@/utils/myRequest';
+import myGetRequest from '@/utils/myGetRequest';
 
 export default {
   register: ({ userAccount = '', password = '', nickName = '' }) => request({
@@ -32,5 +34,12 @@ export default {
   gameRecordList: (roomNumber: string) => request({
     url: '/game/record/find/gameRecord',
     body: { roomNumber },
+  }),
+  saveHandInfo: (handInfo: string[], nickName: any) => myRequest({
+    url: '/generate_hand',
+    body: { handInfo, nickName },
+  }),
+  downloadHands: (nickName: any) => myGetRequest({
+    url: `/download_hands/${nickName}`,
   }),
 };

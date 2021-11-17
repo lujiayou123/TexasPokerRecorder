@@ -75,8 +75,13 @@
       <!-- <div class="btn"
            @click="getRecord(0)"><span>test record</span>
       </div> -->
+      <!-- 记录 -->
       <div class="create-room btn"
           @click="showGameconfig = true" ><span>记录一手牌</span>
+      </div>
+      <!-- 下载 -->
+      <div class="create-room btn"
+          @click="downloadHands" ><span>下载历史记录</span>
       </div>
     </div>
     <div class="room-number"
@@ -238,6 +243,15 @@
     private joinRoom() {
       this.isJoin = true;
       this.showBtn = false;
+    }
+
+    // 下载记录过的手牌
+    private downloadHands() {
+      // const result = await service.downloadHands(localStorage.getItem('nickName')).then((res) => {
+      //   console.log(res);
+      // });
+      // console.log(localStorage.getItem('nickName'));
+      service.downloadHands(localStorage.getItem('nickName'));
     }
 
     private async go() {

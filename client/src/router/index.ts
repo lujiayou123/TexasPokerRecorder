@@ -70,6 +70,7 @@ router.beforeEach(async (to, from, next) => {
     try {
       const result = await service.checkLogin();
       console.log(result);
+      localStorage.setItem('nickName', result.data.nickName);
       next();
     } catch (e) {
       await router.replace({ name: 'login' });
