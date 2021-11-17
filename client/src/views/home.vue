@@ -117,6 +117,7 @@
   import service from '../service';
   import cookie from 'js-cookie';
   import {IGameRecord} from '@/interface/IGameRecord';
+  import origin from '@/utils/origin';
 
   @Component({
     components: {
@@ -251,7 +252,8 @@
       //   console.log(res);
       // });
       // console.log(localStorage.getItem('nickName'));
-      service.downloadHands(localStorage.getItem('nickName'));
+      // service.downloadHands(localStorage.getItem('nickName'));
+      window.open(`${origin.flask_url}/download_hands/${localStorage.getItem('nickName')}`);
     }
 
     private async go() {
