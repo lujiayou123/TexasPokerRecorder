@@ -93,7 +93,9 @@
     <InputHandCard
       :showInputHandCard.sync="showInputHandCard"
       @TransferHandCardToCustomSitList="getHandCard"
-      @TransferIsHeroToCustomSitList="getIsHero" >
+      @TransferIsHeroToCustomSitList="getIsHero"
+      @TransferNickNameToCustomSitList="getNickName"
+    >
     </InputHandCard>
     <!-- :handCard.sync="handCard" -->
   </div>
@@ -140,11 +142,33 @@
     private showInputHandCard = false;
     private currSit!: ISit;
     private handCards!: string[];
+    private isHero: boolean = false;
+    private nickName: string = '';
 
     @Watch('sitLink')
     private getSit(val: ILinkNode<ISit>) {
       this.sitLinkNode = val;
     }
+
+    // @Watch('isHero')
+    // private isHeroChange(newVal: boolean, oldVal: boolean) {
+    //   if (newVal === true && oldVal === false) {
+    //     if (this.currSit.player) {
+    //       this.currSit.player.nickName = 'Hero';
+    //     }
+    //   }
+    // }
+
+    // @Watch('nickName')
+    // private nickNameChange(newVal: string, oldVal: string) {
+    //   if (newVal !== '' && oldVal === '') {
+    //     if (this.currSit.player) {
+    //       if (!this.isHero) {
+    //         this.currSit.player.nickName = newVal;
+    //       }
+    //     }
+    //   }
+    // }
 
     private buyIn(size: number) {
       this.showBuyIn = false;
@@ -156,12 +180,10 @@
     private getHandCard(handCard: string[]) {
       console.log('获取到子组件传来的handCard', handCard);
       this.showInputHandCard = false;
-      // this.handCards = handCard;
       console.log('cursit:', this.currSit);
       if (this.currSit.player) {
         this.currSit.player.handCard = handCard;
       }
-      // this.setHandCard(this.currSit);
     }
 
     private getRandomId(length: number): string {
@@ -176,15 +198,30 @@
     private getIsHero(isHero: boolean) {
       console.log('获取到子组件传来的isHero', isHero);
       this.showInputHandCard = false;
-      console.log('cursit:', this.currSit);
+      this.isHero = isHero;
+      // 如果是hero，currSit的nickName强制设置为Hero
       if (this.currSit.player) {
         if (isHero) {
+          this.isHero = true;
           this.currSit.player.nickName = 'Hero';
-        } else {
-          this.currSit.player.nickName = this.getRandomId(8);
         }
       }
-      // this.setHandCard(this.currSit);
+    }
+
+    private getNickName(nickName: string) {
+      console.log('获取到子组件传来的nickName', nickName);
+      this.showInputHandCard = false;
+      this.nickName = nickName;
+      // 设置nickName之前判断是不是Hero，如果是，pass；如果不是，看此时的nickName是否为空，为空，就随机，非空，选用nickName
+      if (this.currSit.player) {
+        if (!this.isHero) {
+          if (nickName === '') {
+            this.currSit.player.nickName = this.getRandomId(8);
+          } else {
+            this.currSit.player.nickName = nickName;
+          }
+        }
+      }
     }
 
     private showHandCard(sit: ISit) {

@@ -103,54 +103,54 @@
           label: 'A',
         },
         {
-          value: '2',
-          label: '2',
-        },
-        {
-          value: '3',
-          label: '3',
-        },
-        {
-          value: '4',
-          label: '4',
-        },
-        {
-          value: '5',
-          label: '5',
-        },
-        {
-          value: '6',
-          label: '6',
-        },
-        {
-          value: '7',
-          label: '7',
-        },
-        {
-          value: '8',
-          label: '8',
-        },
-        {
-          value: '9',
-          label: '9',
-        },
-        {
-          value: 'T',
-          label: '10',
-        },
-        {
-          value: 'J',
-          label: 'J',
+          value: 'K',
+          label: 'K',
         },
         {
           value: 'Q',
           label: 'Q',
         },
         {
-          value: 'K',
-          label: 'K',
+          value: 'J',
+          label: 'J',
         },
-        ];
+        {
+          value: 'T',
+          label: 'T',
+        },
+        {
+          value: '9',
+          label: '9',
+        },
+        {
+          value: '8',
+          label: '8',
+        },
+        {
+          value: '7',
+          label: '7',
+        },
+        {
+          value: '6',
+          label: '6',
+        },
+        {
+          value: '5',
+          label: '5',
+        },
+        {
+          value: '4',
+          label: '4',
+        },
+        {
+          value: '3',
+          label: '3',
+        },
+        {
+          value: '2',
+          label: '2',
+        },
+      ];
     private colorOptions = [{
           value: 's',
           label: '黑桃',
@@ -189,7 +189,6 @@
       this.flop = [card1, card2, card3];
       console.log(this.flop);
       this.$emit('TransferFlopToRecord', this.flop);
-      // this.$emit('TransferIsHeroToCustomSitList', this.IsHero);
       this.closeInputFlop();
     }
     private mounted() {

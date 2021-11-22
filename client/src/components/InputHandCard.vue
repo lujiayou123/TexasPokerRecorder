@@ -9,8 +9,8 @@
         <input type="string" v-model="handCard1" placeholder="请输入第一张牌，例如Ah">
         <input type="string" v-model="handCard2" placeholder="请输入第二张牌，例如Ad">
       </div> -->
-      <h3> 手牌设置</h3>
-      <label>第一张牌</label>
+      <h2> SetPlayer</h2>
+      <label>HandCard1</label>
       <div class="input-bd">
         <el-select v-model="color1" placeholder="请选花色" style="width:120px">
             <el-option
@@ -35,7 +35,7 @@
                      placeholder="请输入第一张牌，例如Ah"/>
             </div> -->
           </div>
-      <label>第二张牌</label>
+      <label>HandCard2</label>
       <div class="input-bd">
         <el-select v-model="color2" placeholder="请选花色" style="width:120px">
             <el-option
@@ -59,14 +59,16 @@
                      v-model="handCard2"
                      placeholder="请输入第二张牌，例如Ad"/>
             </div> -->
-          </div>
+
+        </div>
       <div class="input-bd">
-            <div class="input-name">IsHero:</div>
+        <div class="input-name">isHero:</div>
             <div class="input-text">
               <input type="checkbox"
                      v-model="IsHero"/>
             </div>
-          </div>
+            <el-input v-model="nickName" placeholder="昵称(可选)"></el-input>
+      </div>
       <div class="btn"><span @click="inputHandCard">确定</span></div>
     </div>
   </div>
@@ -92,60 +94,61 @@
     private color2: string = 'h';
     private handCard: string[] = [];
     private IsHero: boolean = false;
+    private nickName: string = '';
     private cardOptions = [
         {
           value: 'A',
           label: 'A',
         },
         {
-          value: '2',
-          label: '2',
-        },
-        {
-          value: '3',
-          label: '3',
-        },
-        {
-          value: '4',
-          label: '4',
-        },
-        {
-          value: '5',
-          label: '5',
-        },
-        {
-          value: '6',
-          label: '6',
-        },
-        {
-          value: '7',
-          label: '7',
-        },
-        {
-          value: '8',
-          label: '8',
-        },
-        {
-          value: '9',
-          label: '9',
-        },
-        {
-          value: 'T',
-          label: '10',
-        },
-        {
-          value: 'J',
-          label: 'J',
+          value: 'K',
+          label: 'K',
         },
         {
           value: 'Q',
           label: 'Q',
         },
         {
-          value: 'K',
-          label: 'K',
+          value: 'J',
+          label: 'J',
         },
-        ];
+        {
+          value: 'T',
+          label: 'T',
+        },
+        {
+          value: '9',
+          label: '9',
+        },
+        {
+          value: '8',
+          label: '8',
+        },
+        {
+          value: '7',
+          label: '7',
+        },
+        {
+          value: '6',
+          label: '6',
+        },
+        {
+          value: '5',
+          label: '5',
+        },
+        {
+          value: '4',
+          label: '4',
+        },
+        {
+          value: '3',
+          label: '3',
+        },
+        {
+          value: '2',
+          label: '2',
+        },
+      ];
     private colorOptions = [{
           value: 's',
           label: '黑桃',
@@ -161,6 +164,12 @@
           label: '方片',
         },
         ];
+
+    @Watch('showInputHandCard')
+    private showInputHandCardChange() {
+      this.IsHero = false;
+      this.nickName = '';
+    }
 
     private closeInputHandCard() {
       this.$emit('update:showInputHandCard', false);
@@ -184,6 +193,7 @@
       console.log(this.IsHero);
       this.$emit('TransferHandCardToCustomSitList', this.handCard);
       this.$emit('TransferIsHeroToCustomSitList', this.IsHero);
+      this.$emit('TransferNickNameToCustomSitList', this.nickName);
       this.closeInputHandCard();
     }
     private mounted() {
@@ -232,7 +242,7 @@
       font-size: 20px;
       text-align: center;
       input{
-        width: 70px;
+        width: 50px;
         font-size: 20px;
       }
     }

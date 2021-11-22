@@ -2192,7 +2192,7 @@
       for (let i = 0; i < length; i++) {
         const line = this.handInfo[i];
         if (line !== '' && line !== undefined) {
-          // console.log(this.handInfo[i]);
+          console.log(this.handInfo[i]);
           text = text + this.handInfo[i];
         }
       }
