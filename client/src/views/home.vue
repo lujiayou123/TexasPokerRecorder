@@ -43,6 +43,15 @@
               :value="item.value">
             </el-option>
           </el-select>
+          筹码量
+          <el-select v-model="stackSize" placeholder="请选择筹码量" style="width:135px">
+            <el-option
+              v-for="item in stackSizeOptions"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value">
+            </el-option>
+          </el-select>
           人 数
           <el-select v-model="playerNum" placeholder="请选择人数" style="width:150px" :disabled="true">
             <el-option
@@ -53,7 +62,7 @@
             </el-option>
           </el-select>
           币 种
-          <el-select v-model="moneyType" placeholder="请选择币种" style="width:150px">
+          <el-select v-model="moneyType" placeholder="请选择币种" style="width:150px" :disabled="true">
             <el-option
               v-for="item in moneyTypeOptions"
               :key="item.value"
@@ -130,27 +139,78 @@
     private showBtn = true;
     private isError = false;
     private isShort = false;
-    private smallBlind = 0.5;
     private showRoomConfig = false;
     // 游戏设置
     private showGameconfig = false;
     // 人数
-    private playerNum = 9;
-    private moneyType = '$';
+    private playerNum: number = 9;
+    private moneyType: string = '$';
+    private smallBlind: number = 0;
+    private stackSize: number = 0;
     private showRecord = false;
     private commandList = [];
     private currGameIndex = 0;
     private gameList: IGameRecord [] = [];
-    private moneyTypeOptions = [{
-          value: '$',
-          label: '$',
-        }, {
-          value: '￥',
-          label: '￥',
-        }, {
-          value: 'bb',
-          label: 'bb',
-        }];
+    private moneyTypeOptions = [
+      {
+        value: '$',
+        label: '$',
+      },
+      // {
+      //   value: '￥',
+      //   label: '￥',
+      // },
+      // {
+      //   value: 'bb',
+      //   label: 'bb',
+      // },
+      ];
+    private stackSizeOptions = [
+      {
+        value: 50,
+        label: '50bb',
+      },
+      {
+        value: 100,
+        label: '100bb',
+      },
+      {
+        value: 200,
+        label: '200bb',
+      },
+      {
+        value: 300,
+        label: '300bb',
+      },
+      {
+        value: 400,
+        label: '400bb',
+      },
+      {
+        value: 500,
+        label: '500bb',
+      },
+      {
+        value: 600,
+        label: '600bb',
+      },
+      {
+        value: 700,
+        label: '700bb',
+      },
+      {
+        value: 800,
+        label: '800bb',
+      },
+      {
+        value: 900,
+        label: '900bb',
+      },
+      {
+        value: 1000,
+        label: '1000bb',
+      },
+    ];
     private playerNumOptions = [
         {
           value: '6',
@@ -170,47 +230,47 @@
         }];
     private smallBlindOptions = [
         {
-          value: '0.5',
+          value: 0.5,
           label: '0.5/1',
         },
         {
-          value: '1',
+          value: 1,
           label: '1/2',
         },
         {
-          value: '2',
+          value: 2,
           label: '2/4',
         },
         {
-          value: '5',
+          value: 5,
           label: '5/10',
         },
         {
-          value: '10',
+          value: 10,
           label: '10/20',
         },
         {
-          value: '25',
+          value: 25,
           label: '25/50',
         },
         {
-          value: '50',
+          value: 50,
           label: '50/100',
         },
         {
-          value: '100',
+          value: 100,
           label: '100/200',
         },
         {
-          value: '200',
+          value: 200,
           label: '200/400',
         },
         {
-          value: '500',
+          value: 500,
           label: '500/1000',
         },
         {
-          value: '1000',
+          value: 1000,
           label: '1000/2000',
         },
         ];
@@ -248,11 +308,6 @@
 
     // 下载记录过的手牌
     private downloadHands() {
-      // const result = await service.downloadHands(localStorage.getItem('nickName')).then((res) => {
-      //   console.log(res);
-      // });
-      // console.log(localStorage.getItem('nickName'));
-      // service.downloadHands(localStorage.getItem('nickName'));
       window.open(`${origin.flask_url}/download_hands/${localStorage.getItem('nickName')}`);
     }
 
@@ -305,14 +360,25 @@
 
     private recordSingleHand() {
       console.log('记录一手牌');
-      const gameConfig = {
-          smallBlind: this.smallBlind,
-          playerNum: this.playerNum,
-          moneyType: this.moneyType,
-        };
-      localStorage.setItem('gameConfig', JSON.stringify(gameConfig));
-      cookie.set('gameConfig', gameConfig, {expires: 1});
-      this.$router.push({ name: 'record'});
+      if (!this.stackSize) {
+        console.log(this.smallBlind);
+        console.log(this.stackSize);
+        this.$message.error('请选择筹码量');
+      } else {
+          if (this.smallBlind === 0 ) {
+            this.$message.error('请选择大小盲');
+          } else {
+              const gameConfig = {
+              smallBlind: this.smallBlind,
+              playerNum: this.playerNum,
+              moneyType: this.moneyType,
+              stackSize: this.stackSize,
+            };
+              localStorage.setItem('gameConfig', JSON.stringify(gameConfig));
+              cookie.set('gameConfig', gameConfig, {expires: 1});
+              this.$router.push({ name: 'record'});
+          }
+      }
     }
   }
 </script>

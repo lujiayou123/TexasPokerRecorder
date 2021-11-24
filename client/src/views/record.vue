@@ -313,9 +313,12 @@
     private messageList: any[] = [];
     private showRecord = false;
     private handInfo: string[] = [];
+    // 牌局设置
     private moneyType: string = '$';
     private playerNum: number = 9;
-    private smallBlind: number = 0.5;
+    private smallBlind: number = 1;
+    private stackSize: number = 100;
+    //
     private isPreflop: boolean = true;
     private isPostflop: boolean = false;
     private board = [];
@@ -724,6 +727,8 @@
       this.playerNum = this.gameConfig.playerNum;
       this.smallBlind = this.gameConfig.smallBlind;
       this.moneyType = this.gameConfig.moneyType;
+      this.stackSize = this.gameConfig.stackSize;
+      console.log(this.gameConfig);
       this.initSitLink(); // 为每个座位玩家进行相应设置，并得到this.sitLink
       this.joinMsg = '';
       this.handCard = [];
@@ -2077,6 +2082,7 @@
       const heroSeed = 100;
       const sb = this.smallBlind;
       const bb = 2 * sb;
+      const stackSize = this.stackSize;
       const sitListMap = this.sitList || [];
       if (sitListMap.length === 0) {
         for (let i = 0; i < 9; i++) {
@@ -2084,13 +2090,13 @@
           if (i === heroSeed) {
             sit = {
               player: {
-                counter: this.counterDict(i + 1),
+                counter: stackSize * bb,
                 nickName: 'Hero',
                 type: this.positionDict[i + 1],
                 // actionSize: this.blindDict(this.positionDict[i + 1]),
                 actionSize: 0,
                 actionCommand: '',
-                buyIn: 1000 * bb,
+                buyIn: stackSize * bb,
                 status: 1,
                 isSit: true,
                 delayCount: 999,
@@ -2100,13 +2106,13 @@
           } else {
               sit = {
                 player: {
-                  counter: this.counterDict(i + 1),
+                  counter: stackSize * bb,
                   nickName: this.getRandomId(8),
                   type: this.positionDict[i + 1],
                   // actionSize: this.blindDict(this.positionDict[i + 1]),
                   actionSize: 0,
                   actionCommand: '',
-                  buyIn: 1000 * bb,
+                  buyIn: stackSize * bb,
                   status: 1,
                   isSit: true,
                   delayCount: 999,
