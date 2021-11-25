@@ -360,7 +360,7 @@
     private haveShowedHandCard: boolean = false;
     // 自动下载手牌的txt
     private autoDownload: boolean = false;
-    private autoRefresh: boolean = false;
+    private autoRefresh: boolean = true;
     //
     private HandFinished: boolean = false;
     private setHero: boolean = false;
