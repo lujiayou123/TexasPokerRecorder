@@ -617,6 +617,17 @@
       }
     }
 
+    @Watch('pot')
+    private potChange() {
+      if (this.displayByBigBlind) {
+        this.displayMoneyType = 'bb';
+        this.displayPot = this.pot / (this.smallBlind * 2);
+      } else {
+        this.displayMoneyType = this.moneyType;
+        this.displayPot = this.pot;
+      }
+    }
+
     @Watch('commonCard.length')
     private commonCardChange(newVal: number, oldVal: number) {
       // console.log('oldVal', oldVal);
@@ -1360,7 +1371,7 @@
       if (this.autoRefresh) {
         setTimeout(() => {
           location. reload();
-        }, 5000);
+        }, 3000);
       }
     }
 
