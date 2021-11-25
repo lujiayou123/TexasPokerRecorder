@@ -34,8 +34,9 @@
           <el-input v-model="playerNum" placeholder="请输入人数" :disabled="true" clearable>
             <template slot="prepend">人数:</template>
           </el-input> -->
-          大小盲
-          <el-select v-model="smallBlind" placeholder="请选择大小盲" style="width:135px">
+          <div style="width:100%">
+          盲注
+          <el-select v-model="smallBlind" placeholder="请选择大小盲" style="width:60%">
             <el-option
               v-for="item in smallBlindOptions"
               :key="item.value"
@@ -43,8 +44,10 @@
               :value="item.value">
             </el-option>
           </el-select>
-          筹码量
-          <el-select v-model="stackSize" placeholder="请选择筹码量" style="width:135px">
+          </div>
+          <div style="width:100%">
+          码量
+          <el-select v-model="stackSize" placeholder="请选择筹码量" style="width:60%">
             <el-option
               v-for="item in stackSizeOptions"
               :key="item.value"
@@ -52,8 +55,10 @@
               :value="item.value">
             </el-option>
           </el-select>
+          </div>
+          <div style="width:100%">
           人 数
-          <el-select v-model="playerNum" placeholder="请选择人数" style="width:150px" :disabled="true">
+          <el-select v-model="playerNum" placeholder="请选择人数" style="width:60%" :disabled="true">
             <el-option
               v-for="item in playerNumOptions"
               :key="item.value"
@@ -61,8 +66,10 @@
               :value="item.value">
             </el-option>
           </el-select>
+          </div>
+          <div style="width:100%">
           币 种
-          <el-select v-model="moneyType" placeholder="请选择币种" style="width:150px" :disabled="true">
+          <el-select v-model="moneyType" placeholder="请选择币种" style="width:60%" :disabled="true">
             <el-option
               v-for="item in moneyTypeOptions"
               :key="item.value"
@@ -70,6 +77,7 @@
               :value="item.value">
             </el-option>
           </el-select>
+          </div>
           <div class="btn"  @click="recordSingleHand"><span>记录一手牌</span></div>
         </div>
       </div>

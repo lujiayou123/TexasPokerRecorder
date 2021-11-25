@@ -33,11 +33,11 @@
                  :class="{isAction: actionUserId === sit.player.userId,
                   'close-time-out': time > 0 && time < 10 && actionUserId === sit.player.userId }"
                  v-show="sit.player.counter >= 0 || sit.player.actionCommand === 'allin'">
-              {{ sit.player.counter || 0 }}
+              {{ displayByBigBlind ? sit.player.counter / (smallBlind * 2) : sit.player.counter || 0 }}
             </div>
             <div class="action-size"
                  v-show="sit.player.actionSize > 0">
-              {{ sit.player.actionSize }}
+              {{ displayByBigBlind ? sit.player.actionSize / (smallBlind * 2) : sit.player.actionSize}}
             </div>
             <div class="action-command"
                  v-show="sit.player.actionCommand">
@@ -136,6 +136,8 @@
     @Prop() private actionUserId!: string;
     @Prop() private valueCards!: string;
     @Prop({ default: 30, type: Number }) private time!: number;
+    @Prop() private displayByBigBlind!: boolean;
+    @Prop() private smallBlind!: number;
 
     private sitLinkNode: any = '';
     private showBuyIn = false;

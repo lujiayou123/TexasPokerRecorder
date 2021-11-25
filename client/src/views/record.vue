@@ -10,7 +10,9 @@
              :roomConfig ='roomConfig'
              :gameConfig="gameConfig"
              @delay="delay"
+             :smallBlind='smallBlind'
              :time.sync='time'
+             :displayByBigBlind.sync='displayByBigBlind'
              :winner="winner"
              :actionUserId='actionUserId'
              :hand-card="handCard"
@@ -26,7 +28,7 @@
       {{winner[0] && winner[0][0] && winner[0][0].nickName}} WIN!!
     </div>
     <div class="game-body">
-      <div class="pot">pot: {{pot}}</div>
+      <div class="pot" @click="switchDisplayMode">pot: {{displayPot}}{{displayMoneyType}}</div>
       <!-- <div class="roomId">No.:{{roomId}}</div> -->
       <!-- <div class="btn play"
            v-show="isOwner && !isPlay"><span @click="play">play game</span></div>
@@ -318,6 +320,10 @@
     private playerNum: number = 9;
     private smallBlind: number = 1;
     private stackSize: number = 100;
+    // 显示设置
+    private displayByBigBlind: boolean = false;
+    private displayMoneyType: string = '$';
+    private displayPot: number = 0;
     //
     private isPreflop: boolean = true;
     private isPostflop: boolean = false;
@@ -354,7 +360,7 @@
     private haveShowedHandCard: boolean = false;
     // 自动下载手牌的txt
     private autoDownload: boolean = false;
-    private autoRefresh: boolean = true;
+    private autoRefresh: boolean = false;
     //
     private HandFinished: boolean = false;
     private setHero: boolean = false;
@@ -367,6 +373,7 @@
     // private FlopBeenSet: boolean = false;
     // private TurnBeenSet: boolean = false;
     // private RiverBeenSet: boolean = false;
+
 
     public getWinner() {
       if (this.currPlayerNode) {
@@ -462,6 +469,18 @@
         //   }
         //   getOtherWinner([]);
         //   };
+      }
+    }
+
+    private switchDisplayMode() {
+      this.displayByBigBlind = !this.displayByBigBlind;
+      // console.log('displayByBigBlind:', this.displayByBigBlind);
+      if (this.displayByBigBlind) {
+        this.displayMoneyType = 'bb';
+        this.displayPot = this.pot / (this.smallBlind * 2);
+      } else {
+        this.displayMoneyType = this.moneyType;
+        this.displayPot = this.pot;
       }
     }
 
@@ -724,10 +743,16 @@
     private init() {
       const gameConfig = cookie.get('gameConfig') || localStorage.getItem('gameConfig') || '';
       this.gameConfig = JSON.parse(gameConfig);
+      // 牌局设置
       this.playerNum = this.gameConfig.playerNum;
       this.smallBlind = this.gameConfig.smallBlind;
       this.moneyType = this.gameConfig.moneyType;
       this.stackSize = this.gameConfig.stackSize;
+      // 显示设置
+      this.displayMoneyType = this.gameConfig.moneyType;
+      this.displayByBigBlind = false;
+      this.displayPot = this.pot;
+      //
       console.log(this.gameConfig);
       this.initSitLink(); // 为每个座位玩家进行相应设置，并得到this.sitLink
       this.joinMsg = '';
