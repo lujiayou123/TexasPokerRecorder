@@ -5,29 +5,37 @@
       <div class="room-config" v-show="showRoomConfig">
         <div class="room-config-shadow" @click="showRoomConfig = false"></div>
         <div class="room-config-body">
-          <h1> room config</h1>
-          <div class="input-bd">
-            <div class="input-name">smallBlind:</div>
-            <div class="input-text">
-              <input type="tel"
-                     v-model="smallBlind"/>
-            </div>
+          <h1> 房间设置 </h1>
+          <div style="width:100%">
+          盲注
+          <el-select v-model="smallBlind" placeholder="请选择大小盲" style="width:60%">
+            <el-option
+              v-for="item in smallBlindOptions"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value">
+            </el-option>
+          </el-select>
           </div>
-          <div class="input-bd">
-            <div class="input-name">isShort:</div>
-            <div class="input-text">
-              <input type="checkbox"
-                     v-model="isShort"/>
-            </div>
+          <div style="width:100%">
+          短牌
+          <el-select v-model="isShort" placeholder="长牌/短牌" style="width:60%">
+            <el-option
+              v-for="item in deckOptions"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value">
+            </el-option>
+          </el-select>
           </div>
-          <div class="btn"  @click="createRoom"><span>create</span></div>
+          <div class="btn"  @click="createRoom"><span>创建</span></div>
         </div>
       </div>
      <!-- record -->
       <div class="room-config" v-show="showGameconfig">
         <div class="room-config-shadow" @click="showGameconfig = false"></div>
         <div class="room-config-body">
-          <h1> 牌局设置</h1>
+          <h1> 牌局设置 </h1>
           <!-- <el-input v-model="smallBlind" placeholder="请输入小盲" clearable>
             <template slot="prepend">小盲:</template>
           </el-input>
@@ -83,11 +91,11 @@
       </div>
       <!-- 创建 -->
       <div class="create-room btn"
-          @click="showRoomConfig = true" ><span>create room</span>
+          @click="showRoomConfig = true" ><span>创建房间</span>
       </div>
       <!-- 加入 -->
       <div class="btn"
-           @click="joinRoom"><span>join room</span>
+           @click="joinRoom"><span>加入房间</span>
       </div>
       <!-- <div class="btn"
            @click="getRecord(0)"><span>test record</span>
@@ -173,6 +181,16 @@
       //   label: 'bb',
       // },
       ];
+    private deckOptions = [
+      {
+        value: false,
+        label: '否',
+      },
+      {
+        value: true,
+        label: '是',
+      },
+    ];
     private stackSizeOptions = [
       {
         value: 50,
@@ -238,6 +256,10 @@
         }];
     private smallBlindOptions = [
         {
+          value: 0.25,
+          label: '0.25/0.5',
+        },
+        {
           value: 0.5,
           label: '0.5/1',
         },
@@ -293,18 +315,22 @@
 
     // 创建房间
     private async createRoom() {
-      try {
-        const result = await service.createRoom(this.isShort, this.smallBlind, 0);
-        const { roomNumber } = result.data;
-        const roomConfig = {
-          isShort: this.isShort,
-          smallBlind: this.smallBlind,
-        };
-        localStorage.setItem('roomConfig', JSON.stringify(roomConfig));
-        cookie.set('roomConfig', roomConfig, {expires: 1});
-        this.$router.push({ name: 'game', params: { roomNumber, isOwner: '1' } });
-      } catch (e) {
-        console.log(e);
+      if (this.smallBlind !== 0) {
+        try {
+          const result = await service.createRoom(this.isShort, this.smallBlind, 0);
+          const { roomNumber } = result.data;
+          const roomConfig = {
+            isShort: this.isShort,
+            smallBlind: this.smallBlind,
+          };
+          localStorage.setItem('roomConfig', JSON.stringify(roomConfig));
+          cookie.set('roomConfig', roomConfig, {expires: 1});
+          this.$router.push({ name: 'game', params: { roomNumber, isOwner: '1' } });
+        } catch (e) {
+          console.log(e);
+        }
+      } else {
+        this.$message.error('请选择盲注结构');
       }
     }
 

@@ -13,7 +13,7 @@ Vue.config.productionTip = false;
 
 if (process.env.NODE_ENV !== 'production') {
   // tslint:disable-next-line:no-unused-expression
-  new VConsole();
+  // new VConsole();
 }
 // @ts-ignore
 // fastClick.attach(document.body);

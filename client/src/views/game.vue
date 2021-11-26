@@ -26,7 +26,7 @@
       <div class="pot">pot: {{pot}}</div>
       <div class="roomId">No.:{{roomId}}</div>
       <div class="btn play"
-           v-show="isOwner && !isPlay"><span @click="play">play game</span></div>
+           v-show="isOwner && !isPlay"><span @click="play">开始游戏</span></div>
     </div>
     <div class="game-record iconfont icon-record" @click="getRecord(0)"></div>
     <actionDialog :base-size="baseSize"
@@ -44,9 +44,9 @@
            @click="showSetting = true"></div>
       <div class="setting-body"
            :class="{show: showSetting}">
-        <i @click="showBuyInDialog()">buy in</i>
-        <i @click="standUp()">stand Up</i>
-        <i @click="showCounterRecord">counter record</i>
+        <i @click="showBuyInDialog()">买入</i>
+        <i @click="standUp()">站起</i>
+        <i @click="showCounterRecord">战况</i>
       </div>
     </div>
     <BuyIn :showBuyIn.sync='showBuyIn'

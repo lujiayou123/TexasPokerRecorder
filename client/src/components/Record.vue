@@ -4,13 +4,13 @@
     <div class="shadow"
          @click="show = false"></div>
     <div class="body">
-      <div class="title">record</div>
+      <div class="title">记录</div>
       <ul>
         <li>
-          <i>nickName</i>
-          <i>buy in</i>
-          <i>counter</i>
-          <i>income</i>
+          <i>昵称</i>
+          <i>买入</i>
+          <i>码量</i>
+          <i>收入</i>
         </li>
         <li v-for="player in players">
           <i>{{player.nickName}}</i>

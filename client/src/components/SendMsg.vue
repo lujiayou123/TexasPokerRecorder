@@ -9,7 +9,7 @@
                v-model='msg'>
       </div>
       <div class="msg-btn btn"
-           @click="send" ><span>send</span></div>
+           @click="send" ><span>发送</span></div>
     </div>
   </div>
 </template>

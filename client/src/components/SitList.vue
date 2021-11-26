@@ -9,7 +9,7 @@
       >
         <div class="default"
              v-show="!sit.player">
-          <i>sit</i>
+          <i>坐</i>
         </div>
         <div class="sit-player"
              v-if="sit.player">
