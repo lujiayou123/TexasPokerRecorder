@@ -2227,7 +2227,20 @@
       const fileName = `Hand${year}${month}${day}${hour}${minute}${second}.txt`;
       let text = '';
       //
-      service.saveHandInfo(this.handInfo, localStorage.getItem('nickName'));
+      service.saveHandInfo(this.handInfo, localStorage.getItem('nickName')).then((res) => {
+        console.log(`记录成功:${res}`);
+        // this.$message.success(`记录成功:${res}`);
+      }).catch((e) => {
+        console.log(`记录成功:${e}`);
+        // this.$message.success(`记录成功:${e}`);
+      });
+      service.get_recorded_handsNum(localStorage.getItem('nickName')).then((res) => {
+        console.log(`已记录手牌数量:${res}`);
+        this.$message.success(`已记录手牌数量:${res}`);
+      }).catch((e) => {
+        console.log(`已记录手牌数量:${e}`);
+        this.$message.success(`已记录手牌数量:${e}`);
+      });
       //
       console.log('nickName:', localStorage.getItem('nickName'));
       const length = this.handInfo.length;

@@ -42,4 +42,7 @@ export default {
   downloadHands: (nickName: any) => myGetRequest({
     url: `/download_hands/${nickName}`,
   }),
+  get_recorded_handsNum: (nickName: any) => myGetRequest({
+    url: `/get_recorded_handsNum/${nickName}`,
+  }),
 };
