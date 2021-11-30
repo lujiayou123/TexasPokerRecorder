@@ -902,7 +902,11 @@
             const prevActionSize = this.currPlayerNode.node.actionSize >= 0 ? this.currPlayerNode.node.actionSize : 0;
             size = this.currPlayerNode.node.counter + prevActionSize;
             // this.RaiseNum = size - prevActionSize - this.prevSize;
-            this.RaiseNum = size - this.prevSize;
+            if (this.prevSize !== -1) {
+              this.RaiseNum = size - this.prevSize;
+            } else {
+              this.RaiseNum = size;
+            }
             console.log('prevActionSize', prevActionSize);
             console.log('size', size);
             console.log('RaiseNum', this.RaiseNum);
@@ -913,7 +917,7 @@
             // console.log('position', this.currPlayerNode.node.type);
             // console.log('inpot', this.currPlayerNode.node.inPot);
             this.removePlayer(this.currPlayerNode.node);
-            if (this.prevSize === 0) {
+            if (this.prevSize === 0 || this.prevSize === -1) {
               raiseInfo = `${this.currPlayerNode.node.nickName}: bets ${this.moneyType}${size} and is all-in\n`;
               this.pot += size - prevActionSize;
             } else {
@@ -1057,8 +1061,8 @@
             // console.log(this.currPlayerNode.node.type === EPlayerType.BIG_BLIND
             //   && this.prevSize === this.smallBlind * 2, 'big blind', this.currPlayerNode);
             // ???
-            // size = -1;
-            size = 0;
+            size = -1;
+            // size = 0;
           }
           if (command === ECommand.RAISE) {
             // console.log(size);
@@ -1079,12 +1083,16 @@
             }
             this.pot += (size - prevActionSize);
             // this.RaiseNum = size - prevActionSize - this.prevSize;
-            this.RaiseNum = size - this.prevSize;
+            if (this.prevSize !== -1) {
+              this.RaiseNum = size - this.prevSize;
+            } else {
+              this.RaiseNum = size;
+            }
             let raiseInfo;
             // console.log(size);
             // console.log(prevActionSize);
             // console.log('prevSize', this.prevSize);
-            if (this.prevSize === 0) {
+            if (this.prevSize === 0 || this.prevSize === -1) {
               raiseInfo = `${this.currPlayerNode.node.nickName}: bets ${this.moneyType}${size - prevActionSize}\n`;
             } else {
               raiseInfo = `${this.currPlayerNode.node.nickName}: raises ${this.moneyType}${size - this.prevSize} to ${this.moneyType}${size}\n`;

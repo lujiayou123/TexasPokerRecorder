@@ -132,13 +132,23 @@ import { IPlayer } from '@/interface/IPlayer';
     if (size === bb) {
       return [size * 2, size * 2.5, size * 3, size * 4, size * 5];
     } else {
-      return [
-        ((prevSize + pot) * 0.33 + prevSize) > prevSize * 2 ? ((prevSize + pot) * 0.33 + prevSize) : prevSize * 2,
-        ((prevSize + pot) * 0.5 + prevSize),
-        ((prevSize + pot) * 0.66 + prevSize),
-        ((prevSize + pot) * 1 + prevSize),
-        ((prevSize + pot) * 1.5 + prevSize),
-      ];
+      if (prevSize !== -1) {
+        return [
+          ((prevSize + pot) * 0.33 + prevSize) > prevSize * 2 ? ((prevSize + pot) * 0.33 + prevSize) : prevSize * 2,
+          ((prevSize + pot) * 0.5 + prevSize),
+          ((prevSize + pot) * 0.66 + prevSize),
+          ((prevSize + pot) * 1 + prevSize),
+          ((prevSize + pot) * 1.5 + prevSize),
+        ];
+      } else {
+        return [
+          (pot * 0.33),
+          (pot * 0.5),
+          (pot * 0.66),
+          (pot * 1),
+          (pot * 1.5),
+        ];
+      }
     }
   }
 

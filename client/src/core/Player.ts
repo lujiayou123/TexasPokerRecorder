@@ -174,8 +174,8 @@ export class Player {
     }
 
     if (command === ECommand.CHECK) {
-      // size = -1;
-      size = 0;
+      size = -1;
+      // size = 0;
     }
 
     if (command === ECommand.FOLD) {
