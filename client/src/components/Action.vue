@@ -134,19 +134,19 @@ import { IPlayer } from '@/interface/IPlayer';
     } else {
       if (prevSize !== -1) {
         return [
-          ((prevSize + pot) * 0.33 + prevSize) > prevSize * 2 ? ((prevSize + pot) * 0.33 + prevSize) : prevSize * 2,
+          ((prevSize + pot) / 3 + prevSize) > prevSize * 2 ? ((prevSize + pot) / 3 + prevSize) : prevSize * 2,
           ((prevSize + pot) * 0.5 + prevSize),
-          ((prevSize + pot) * 0.66 + prevSize),
+          ((prevSize + pot) / 3 * 2 + prevSize),
+          ((prevSize + pot) * 0.8 + prevSize),
           ((prevSize + pot) * 1 + prevSize),
-          ((prevSize + pot) * 1.5 + prevSize),
         ];
       } else {
         return [
-          (pot * 0.33),
+          (pot / 3),
           (pot * 0.5),
-          (pot * 0.66),
+          (pot / 3 * 2),
+          (pot * 0.8),
           (pot * 1),
-          (pot * 1.5),
         ];
       }
     }
