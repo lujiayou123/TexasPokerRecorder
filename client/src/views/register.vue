@@ -1,36 +1,36 @@
 <template>
   <div class="register-container container">
     <div class="register-body">
-      <div class="logo">J-POKER</div>
-      <div class="title">Create Account</div>
+      <div class="logo">线下手牌记录器</div>
+      <div class="title">注册账号</div>
       <div class="user-name">
         <XInput v-model='form.userAccount'
-                text="account"
+                text="用户名"
                 @focus="removeValid('userAccount')"
                 :error="errorData.indexOf('userAccount') > -1"></XInput>
       </div>
       <div class="user-name">
         <XInput v-model='form.nickName'
-                text="nickName"
+                text="昵称"
                 @focus="removeValid('nickName')"
                 :error="errorData.indexOf('nickName') > -1"></XInput>
       </div>
       <div class="password">
         <XInput v-model='form.password'
-                text="password"
+                text="密码"
                 type="password"
                 @focus="removeValid('password')"
                 :error="errorData.indexOf('password') > -1"></XInput>
       </div>
       <div class="confirm">
         <XInput v-model='form.confirm'
-                text="confirm"
+                text="密码确认"
                 type="password"
                 @focus="removeValid('confirm')"
                 :error="errorData.indexOf('confirm') > -1"></XInput>
       </div>
       <div class="register-btn">
-        <div class="s-btn btn"><span @click="register">submit</span></div>
+        <div class="s-btn btn"><span @click="register">注册</span></div>
       </div>
     </div>
   </div>

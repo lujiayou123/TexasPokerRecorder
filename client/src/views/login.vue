@@ -1,7 +1,7 @@
 <template>
     <div class="login-container container">
       <div class="login-body">
-        <div class="name">J-POKER</div>
+        <div class="name">线下手牌记录器</div>
         <div class="user-name input-bd">
           <div class="input-name iconfont icon-account"></div>
           <div class="input-text">
@@ -17,8 +17,8 @@
           </div>
         </div>
         <div class="login-btn btn">
-          <span @click="login">sign in</span>
-          <b @click="signUp">sign up</b>
+          <span @click="login">登录</span>
+          <b @click="signUp">注册</b>
         </div>
       </div>
     </div>
