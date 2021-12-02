@@ -1326,6 +1326,9 @@
                 let playerHead = this.currPlayerNode;
                 let inPotPlayerHandInfo = '';
                 for (let i = 0; i < this.playerSize; i ++) {
+                  if (playerHead.node.handCard === undefined) {
+                    this.$message.error('无法与未知手牌比较大小，记录失败');
+                  }
                   inPotPlayerHandInfo = `${playerHead.node.nickName}: shows [${this.decodeHandCard(playerHead.node.handCard[0])} ${this.decodeHandCard(playerHead.node.handCard[1])}] (${this.PokeStyle(playerHead.node.handCard)})\n`;
                   this.handInfo.push(inPotPlayerHandInfo);
                   if (playerHead.next) {

@@ -114,7 +114,7 @@ import { IPlayer } from '@/interface/IPlayer';
     const prevSize = this.prevSize;
     const bb = this.baseSize * 2;
     let size = 0;
-    if (pot > bb * 2) {
+    if (pot > bb * 1.5) {
       size = pot;
     } else {
       size = bb;
@@ -133,21 +133,41 @@ import { IPlayer } from '@/interface/IPlayer';
       return [size * 2, size * 2.5, size * 3, size * 4, size * 5];
     } else {
       if (prevSize !== -1) {
-        return [
-          ((prevSize + pot) / 3 + prevSize) > prevSize * 2 ? ((prevSize + pot) / 3 + prevSize) : prevSize * 2,
-          ((prevSize + pot) * 0.5 + prevSize),
-          ((prevSize + pot) / 3 * 2 + prevSize),
-          ((prevSize + pot) * 0.8 + prevSize),
-          ((prevSize + pot) * 1 + prevSize),
-        ];
+        if (pot === 2 * bb) {
+            return [
+              (pot * 0.5),
+              (pot * 0.75),
+              (pot * 1),
+              (pot * 1.25),
+              (pot * 1.5),
+            ];
+          } else {
+            return [
+              ((prevSize + pot) / 3 + prevSize) > prevSize * 2 ? ((prevSize + pot) / 3 + prevSize) : prevSize * 2,
+              ((prevSize + pot) * 0.5 + prevSize),
+              ((prevSize + pot) / 3 * 2 + prevSize),
+              ((prevSize + pot) * 0.85 + prevSize),
+              ((prevSize + pot) * 1 + prevSize),
+            ];
+          }
       } else {
-        return [
-          (pot / 3),
-          (pot * 0.5),
-          (pot / 3 * 2),
-          (pot * 0.8),
-          (pot * 1),
-        ];
+          if (pot === 2 * bb) {
+            return [
+              (pot * 0.5),
+              (pot * 0.75),
+              (pot * 1),
+              (pot * 1.25),
+              (pot * 1.5),
+            ];
+          } else {
+            return [
+              (pot / 3),
+              (pot * 0.5),
+              (pot / 3 * 2),
+              (pot * 0.85),
+              (pot * 1),
+            ];
+          }
       }
     }
   }
