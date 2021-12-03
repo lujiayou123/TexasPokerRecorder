@@ -1821,12 +1821,27 @@
 
     private setPreFlopInfo() {
       const now = new Date();
-      const year = now.getFullYear(); // 得到年份
-      const month = now.getMonth() + 1; // 得到月份
-      const day = now.getDate(); // 得到日期
-      const hour = now.getHours(); // 得到小时数
-      const minute = now.getMinutes(); // 得到分钟数
-      const second = now.getSeconds(); // 得到秒数
+      const year: string | number = now.getFullYear().toString(); // 得到年份
+      let month: string | number = now.getMonth() + 1; // 得到月份
+      let day: string | number = now.getDate(); // 得到日期
+      let hour: string | number = now.getHours(); // 得到小时数
+      let minute: string | number = now.getMinutes(); // 得到分钟数
+      let second: string | number = now.getSeconds(); // 得到秒数
+      if (month < 10) {
+        month = '0' + month.toString();
+      }
+      if (day < 10) {
+        day = '0' + day.toString();
+      }
+      if (hour < 10) {
+        hour = '0' + hour.toString();
+      }
+      if (minute < 10) {
+        minute = '0' + minute.toString();
+      }
+      if (second < 10) {
+        second = '0' + second.toString();
+      }
       const handId = this.getRandomNumber(9);
       const tableId = this.getRandomNumber(7);
       const platformInfo = `PokerStars Zoom Hand #${handId}: Hold'em No Limit  (${this.moneyType}${this.smallBlind}/${this.moneyType}${this.smallBlind * 2}) - ${year}/${month}/${day} ${hour}:${minute}:${second}\n`;
