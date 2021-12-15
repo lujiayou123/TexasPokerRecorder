@@ -6,6 +6,7 @@ import Register from '../views/register.vue';
 import Game from '../views/game.vue';
 // 记录手牌
 import Record from '../views/record.vue';
+import RangeTraining from '../views/rangeTraining.vue';
 import service from '../service';
 import origin from '../utils/origin';
 
@@ -53,6 +54,16 @@ const routes: RouteConfig[] = [
     component: Record,
     meta: {
       title: 'record',
+      needLogin: false,
+    },
+  },
+  // 记录手牌
+  {
+    path: '/rangeTraining',
+    name: 'rangeTraining',
+    component: RangeTraining,
+    meta: {
+      title: 'rangeTraining',
       needLogin: false,
     },
   },

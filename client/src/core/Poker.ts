@@ -3,7 +3,7 @@ export interface IPoker {
 
   getCard(): string;
 
-  getRandom(number: number): number;
+  getRandom(num: number): number;
 }
 
 /**
@@ -18,7 +18,7 @@ export class Poker implements IPoker {
     this.init();
   }
 
-  init(): void {
+  public init(): void {
     let size = [
       'a',
       'b',
@@ -53,16 +53,16 @@ export class Poker implements IPoker {
     }
   }
 
-  getCard(): string {
-    if (this.pokers.length === 0) return 'done';
+  public getCard(): string {
+    if (this.pokers.length === 0) { return 'done'; }
     const currCardIndex = this.getRandom(this.pokers.length);
     const currCard = this.pokers[currCardIndex];
     this.pokers.splice(currCardIndex, 1);
     return currCard;
   }
 
-  getRandom(number: number): number {
-    const maxNumber = Math.ceil(number);
+  public getRandom(num: number): number {
+    const maxNumber = Math.ceil(num);
     return Math.floor(Math.random() * maxNumber);
   }
 }

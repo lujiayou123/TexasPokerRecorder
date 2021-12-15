@@ -81,18 +81,6 @@ import { IPlayer } from '@/interface/IPlayer';
   private playClick = false;
   private playRaise = false;
   private playFold = false;
-  // private raiseSizeMap = {
-  //   firsAction: {
-  //     two: 2,
-  //     three: 3,
-  //     four: 4,
-  //   },
-  //   other: {
-  //     oneThirdPot: 0.5,
-  //     halfPot: 0.75,
-  //     pot: 1,
-  //   },
-  // };
 
   @Watch('isAction')
   private wAction(val: boolean) {
@@ -109,7 +97,6 @@ import { IPlayer } from '@/interface/IPlayer';
 
   get raiseSizeMap() {
     // 底池如果大于2bb，size = pot,否则，size = 1bb
-    // const size = this.pot > this.baseSize * 4 ? this.pot : this.baseSize * 2;
     const pot = this.pot;
     const prevSize = this.prevSize;
     const bb = this.baseSize * 2;
@@ -120,15 +107,6 @@ import { IPlayer } from '@/interface/IPlayer';
       size = bb;
     }
     // 翻前
-    // if (this.prevSize > 1) {
-    //   size = this.prevSize * 4;
-    // }
-    // console.log('this.prevSize', this.prevSize);
-    // console.log('size', size);
-    // console.log('this.baseSize', this.baseSize);
-    // return size === this.baseSize * 2 ? [ size, size * 2, size * 2.5, size * 3, size * 4] : [ 0.5 * size, 0.75 * size, size ];
-    // 如果size = 大盲，[size,2x,3x]
-    // size != 大盲, [0.5x,0.75x,1x]
     if (size === bb) {
       return [size * 2, size * 2.5, size * 3, size * 4, size * 5];
     } else {
@@ -181,12 +159,6 @@ import { IPlayer } from '@/interface/IPlayer';
   }
 
   private action(command: string) {
-    // if (command.indexOf('raise') > -1 || command === 'allin' || command === 'call' ) {
-    //   this.playRaise = true;
-    // }
-    // if (command === 'fold' || command === 'check') {
-    //   this.playFold = true;
-    // }
     if (!this.actioned) {
       this.actioned = true;
       this.$emit('action', command);
@@ -225,7 +197,6 @@ import { IPlayer } from '@/interface/IPlayer';
   }
 
   private showActionBtn(type: string) {
-    // console.log('this.currPlayer?.type', this.currPlayer?.type);
     // check
     if ('check' === type) {
       return this.prevSize <= 0

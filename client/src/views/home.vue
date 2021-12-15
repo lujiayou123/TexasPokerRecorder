@@ -90,16 +90,20 @@
         </div>
       </div>
       <!-- 创建 -->
-      <div class="create-room btn"
+      <!-- <div class="create-room btn"
           @click="showRoomConfig = true" ><span>创建房间</span>
-      </div>
+      </div> -->
       <!-- 加入 -->
-      <div class="btn"
+      <!-- <div class="btn"
            @click="joinRoom"><span>加入房间</span>
-      </div>
+      </div> -->
       <!-- <div class="btn"
            @click="getRecord(0)"><span>test record</span>
       </div> -->
+      <!-- 记录 -->
+      <div class="create-room btn"
+          @click="preflopRangeTraining" ><span>翻前范围训练</span>
+      </div>
       <!-- 记录 -->
       <div class="create-room btn"
           @click="showGameconfig = true" ><span>记录一手牌</span>
@@ -413,6 +417,11 @@
               this.$router.push({ name: 'record'});
           }
       }
+    }
+
+    private preflopRangeTraining() {
+
+      this.$router.push({ name: 'rangeTraining'});
     }
   }
 </script>

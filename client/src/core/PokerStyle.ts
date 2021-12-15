@@ -21,18 +21,18 @@ interface IPokerStyle {
 }
 
 export class PokerStyle implements IPokerStyle {
-  cards: string[] = [];
-  flushObj: { [key: number]: string[] } = {
+  public cards: string[] = [];
+  public flushObj: { [key: number]: string[] } = {
     1: [] as string[],
     2: [] as string[],
     3: [] as string[],
     4: [] as string[],
   };
-  flushColor: string = '';
-  isShort: boolean;
-  straightArr: string[] = [];
-  pokerStyle: string[] = [ '0', '0', '0', '0', '0', '0', '0', '0', '0', '0' ];
-  numObj: Map<string, number> = new Map(
+  public flushColor: string = '';
+  public isShort: boolean;
+  public straightArr: string[] = [];
+  public pokerStyle: string[] = [ '0', '0', '0', '0', '0', '0', '0', '0', '0', '0' ];
+  public numObj: Map<string, number> = new Map(
     POKER_STR.split('').map((m) => [ m, 0 ]));
 
   constructor(cards: string[], isShort= false) {
@@ -41,7 +41,7 @@ export class PokerStyle implements IPokerStyle {
     this.init();
   }
 
-  init() {
+  public init() {
     let i = 0;
     const isTwo = [];
     const isThree = [];
@@ -175,13 +175,13 @@ export class PokerStyle implements IPokerStyle {
     this.pokerStyle[9] = highCard.join('');
   }
 
-  isStraight(str?: string []): string {
+  public isStraight(str?: string []): string {
     const straightStr = str && str.join('') || [ ...new Set(this.straightArr) ].join('');
     let first = -1;
     let second = -1;
     let three = -1;
-    function indexOf(str: string): number {
-      return POKER_STR.indexOf(str);
+    function indexOf(pokerstr: string): number {
+      return POKER_STR.indexOf(pokerstr);
     }
     if (straightStr.length === 5 && indexOf(straightStr) > -1) {
       return POKER_STR.slice(indexOf(straightStr), indexOf(straightStr) + 5);
@@ -214,11 +214,11 @@ export class PokerStyle implements IPokerStyle {
     return '0';
   }
 
-  getPokerWeight() {
+  public getPokerWeight() {
     return this.pokerStyle.join('');
   }
 
-  getPokerValueCard() {
+  public getPokerValueCard() {
     let valueStyle = '';
     let isFlush = false;
     this.pokerStyle.forEach((style, key) => {
