@@ -188,7 +188,7 @@ import service from "../service";
 
 @Component({
   components: {
-    gameRecord
+    gameRecord,
   },
 })
 export default class Home extends Vue {
@@ -203,8 +203,8 @@ export default class Home extends Vue {
   // 人数
   private playerNum: number = 9;
   private moneyType: string = "$";
-  private smallBlind: number = 0;
-  private stackSize: number = 0;
+  private smallBlind: number = 5;
+  private stackSize: number = 100;
   private showRecord = false;
   private commandList = [];
   private currGameIndex = 0;
@@ -212,7 +212,7 @@ export default class Home extends Vue {
   private moneyTypeOptions = [
     {
       value: "$",
-      label: "$"
+      label: "$",
     },
     // {
     //   value: '￥',
@@ -226,143 +226,123 @@ export default class Home extends Vue {
   private deckOptions = [
     {
       value: false,
-      label: "否"
+      label: "否",
     },
     {
       value: true,
-      label: "是"
+      label: "是",
     },
   ];
   private stackSizeOptions = [
     {
       value: 50,
-      label: "50bb"
+      label: "50bb",
     },
     {
       value: 100,
-      label: "100bb"
+      label: "100bb",
     },
     {
       value: 200,
-      label: "200bb"
+      label: "200bb",
     },
     {
       value: 300,
-      label: "300bb"
+      label: "300bb",
     },
     {
       value: 400,
-      label: "400bb"
+      label: "400bb",
     },
     {
       value: 500,
-      label: "500bb"
+      label: "500bb",
     },
     {
       value: 600,
-      label: "600bb"
+      label: "600bb",
     },
     {
       value: 700,
-      label: "700bb"
+      label: "700bb",
     },
     {
       value: 800,
-      label: "800bb"
+      label: "800bb",
     },
     {
       value: 900,
-      label: "900bb"
+      label: "900bb",
     },
     {
       value: 1000,
-      label: "1000bb"
+      label: "1000bb",
     },
   ];
   private playerNumOptions = [
     {
-      value: "3",
-      label: "3"
+      value: 6,
+      label: 6,
     },
     {
-      value: "4",
-      label: "4"
-    },
-    {
-      value: "5",
-      label: "5"
-    },
-    {
-      value: "6",
-      label: "6"
-    },
-    {
-      value: "7",
-      label: "7"
-    },
-    {
-      value: "8",
-      label: "8"
-    },
-    {
-      value: "9",
-      label: "9"
+      value: 9,
+      label: 9,
     },
   ];
   private smallBlindOptions = [
     {
       value: 0.25,
-      label: "0.25/0.5"
+      label: "0.25/0.5",
     },
     {
       value: 0.5,
-      label: "0.5/1"
+      label: "0.5/1",
     },
     {
       value: 1,
-      label: "1/2"
+      label: "1/2",
     },
     {
       value: 2,
-      label: "2/4"
+      label: "2/4",
     },
     {
       value: 5,
-      label: "5/10"
+      label: "5/10",
     },
     {
       value: 10,
-      label: "10/20"
+      label: "10/20",
     },
     {
       value: 25,
-      label: "25/50"
+      label: "25/50",
     },
     {
       value: 50,
-      label: "50/100"
+      label: "50/100",
     },
     {
       value: 100,
-      label: "100/200"
+      label: "100/200",
     },
     {
       value: 200,
-      label: "200/400"
+      label: "200/400",
     },
     {
       value: 500,
-      label: "500/1000"
+      label: "500/1000",
     },
     {
       value: 1000,
-      label: "1000/2000"
+      label: "1000/2000",
     },
   ];
   private rules = {
     name: [
       { required: true, message: "用户名不能为空", trigger: "change" },
-      { min: 2, max: 9, message: "长度在 2 到 30 个字符", trigger: "blur" }
+      { min: 2, max: 9, message: "长度在 2 到 30 个字符", trigger: "blur" },
     ],
   };
 
@@ -380,7 +360,7 @@ export default class Home extends Vue {
         const result = await service.createRoom(
           this.isShort,
           this.smallBlind,
-          0,
+          0
         );
         const { roomNumber } = result.data;
         const roomConfig = {
@@ -410,7 +390,7 @@ export default class Home extends Vue {
   // 下载记录过的手牌
   private downloadHands() {
     window.open(
-      `${origin.flask_url}/download_hands/${localStorage.getItem("nickName")}`,
+      `${origin.flask_url}/download_hands/${localStorage.getItem("nickName")}`
     );
   }
 
@@ -465,19 +445,16 @@ export default class Home extends Vue {
   }
 
   private recordSingleHand() {
-    console.log("记录一手牌");
     if (!this.stackSize) {
-      console.log(this.smallBlind);
-      console.log(this.stackSize);
       this.$message.error("请选择筹码量");
     } else {
       if (this.smallBlind === 0) {
         this.$message.error("请选择大小盲");
       } else {
         const gameConfig = {
-          smallBlind: this.smallBlind,
-          playerNum: this.playerNum,
           moneyType: this.moneyType,
+          playerNum: this.playerNum,
+          smallBlind: this.smallBlind,
           stackSize: this.stackSize,
         };
         localStorage.setItem("gameConfig", JSON.stringify(gameConfig));

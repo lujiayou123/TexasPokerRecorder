@@ -285,7 +285,7 @@ export default class Record extends Vue {
   private userInfo: any = {};
   private currPosition: string = "";
   private currIndex: number = 0;
-  private positionDict: { [key: number]: string } = {
+  private positionDict9Max: { [key: number]: string } = {
     1: "UTG",
     2: "UTG+1",
     3: "MP",
@@ -296,7 +296,7 @@ export default class Record extends Vue {
     8: "SB",
     9: "BB",
   };
-  private preflopActionOrder: { [key: number]: string } = {
+  private preflopActionOrder9Max: { [key: number]: string } = {
     1: "UTG",
     2: "UTG+1",
     3: "MP",
@@ -307,7 +307,7 @@ export default class Record extends Vue {
     8: "SB",
     9: "BB",
   };
-  private postflopActionOrder: { [key: string]: number } = {
+  private postflopActionOrder9Max: { [key: string]: number } = {
     "SB": 1,
     "BB": 2,
     "UTG": 3,
@@ -317,6 +317,30 @@ export default class Record extends Vue {
     "HJ": 7,
     "CO": 8,
     "BTN": 9,
+  };
+  private positionDict6Max: { [key: number]: string } = {
+    1: "EP",
+    2: "MP",
+    3: "CO",
+    4: "BTN",
+    5: "SB",
+    6: "BB",
+  };
+  private preflopActionOrder6Max: { [key: number]: string } = {
+    1: "EP",
+    2: "MP",
+    3: "CO",
+    4: "BTN",
+    5: "SB",
+    6: "BB",
+  };
+  private postflopActionOrder6Max: { [key: string]: number } = {
+    SB: 1,
+    BB: 2,
+    UTG: 3,
+    MP: 4,
+    CO: 5,
+    BTN: 6,
   };
 
   private joinMsg = "";
@@ -508,11 +532,11 @@ export default class Record extends Vue {
   }
 
   private getPostFlopFirstActionPlayer(leftPlayers: Player[]): Player {
-    let min = this.postflopActionOrder[leftPlayers[0].type];
+    let min = this.postflopActionOrder9Max[leftPlayers[0].type];
     let firstPlayer = leftPlayers[0];
     // 循环找到firstPlayer
     for (const player of leftPlayers) {
-      const val = this.postflopActionOrder[player.type];
+      const val = this.postflopActionOrder9Max[player.type];
       if (val <= min) {
         min = val;
         firstPlayer = player;
@@ -774,8 +798,13 @@ export default class Record extends Vue {
     this.displayByBigBlind = false;
     this.displayPot = this.pot;
     //
+    console.log("牌局设置");
     console.log(this.gameConfig);
+    // 初始化座位
     this.initSitLink(); // 为每个座位玩家进行相应设置，并得到this.sitLink
+    if (this.gameConfig.playerNum === 6) {
+      this.removeUselessSeats(); // 移除三个位置
+    }
     this.joinMsg = "";
     this.handCard = [];
     this.commonCard = [];
@@ -898,9 +927,6 @@ export default class Record extends Vue {
           }
           this.currActionAllinPlayer.push(this.currPlayerNode.node);
           let raiseInfo;
-          // console.log('counter', this.currPlayerNode.node.counter);
-          // console.log('prevSize', this.prevSize);
-          // console.log('position', this.currPlayerNode.node.type);
           // console.log('inpot', this.currPlayerNode.node.inPot);
           this.removePlayer(this.currPlayerNode.node);
           if (this.prevSize === 0 || this.prevSize === -1) {
@@ -1395,7 +1421,9 @@ export default class Record extends Vue {
     this.getWinner();
     // todo counting
     this.counting();
+    console.log("before summary");
     this.Summary();
+    console.log("before logHandInfo");
     this.logHandInfo();
     if (this.autoRefresh) {
       setTimeout(() => {
@@ -1692,6 +1720,16 @@ export default class Record extends Vue {
     }
   }
 
+  // 移除九人桌的三个座位，变成六人桌
+  private removeUselessSeats() {
+    console.log("removeUselessSeats");
+    console.log(this.playerLink);
+    if (this.playerLink) {
+      const UTGPlayerNode = this.playerLink.getNode(0);
+      console.log(UTGPlayerNode);
+    }
+  }
+
   private setBlind() {
     // sb blind
     if (this.playerLink) {
@@ -1913,6 +1951,8 @@ export default class Record extends Vue {
         }${this.pot})\n`;
         this.SummarySeatInfo.push(summarySeatInfo);
       } else if (this.playerSize === 0 && this.allInPlayers.length >= 2) {
+        console.log("more than 2 allin");
+        // console.log(this.allInPlayers);
         for (const player of this.allInPlayers) {
           let summarySeatInfo = "";
           if (this.isWinner(player)) {
@@ -1952,6 +1992,7 @@ export default class Record extends Vue {
                 )} ${this.decodeHandCard(player.handCard[1])}] and collected (${
                   this.moneyType
                 }${this.pot}) with ${this.PokeStyle(player.handCard)}\n`;
+                console.log(summarySeatInfo);
                 break;
             }
           } else {
@@ -2210,6 +2251,16 @@ export default class Record extends Vue {
     return randomId;
   }
 
+  private get6MaxStatus(index: number): number {
+    const position9Max = this.positionDict9Max[index + 1];
+    for (let i = 0; i < 6; i++) {
+      if (position9Max === this.positionDict6Max[i]) {
+        return 1;
+      }
+    }
+    return -1;
+  }
+
   private checkRoundComplete(): boolean {
     for (let i = 0; i < this.playerNum; i++) {
       // 没有弃牌
@@ -2253,6 +2304,7 @@ export default class Record extends Vue {
     return counterDict[position];
   }
   private initSitLink() {
+    // console.log(gameConfig.playerNum);
     // this.prevSize = this.smallBlind * 2;
     // 0~9的随机数
     // const heroSeed = Math.floor(Math.random() * 9);
@@ -2269,12 +2321,12 @@ export default class Record extends Vue {
             player: {
               counter: stackSize * bb,
               nickName: "Hero",
-              type: this.positionDict[i + 1],
-              // actionSize: this.blindDict(this.positionDict[i + 1]),
+              type: this.positionDict9Max[i + 1],
+              // actionSize: this.blindDict(this.positionDict9Max[i + 1]),
               actionSize: 0,
               actionCommand: "",
               buyIn: stackSize * bb,
-              status: 1,
+              status: -1,
               isSit: true,
               delayCount: 999,
             },
@@ -2285,8 +2337,8 @@ export default class Record extends Vue {
             player: {
               counter: stackSize * bb,
               nickName: this.getRandomId(8),
-              type: this.positionDict[i + 1],
-              // actionSize: this.blindDict(this.positionDict[i + 1]),
+              type: this.positionDict9Max[i + 1],
+              // actionSize: this.blindDict(this.positionDict9Max[i + 1]),
               actionSize: 0,
               actionCommand: "",
               buyIn: stackSize * bb,
@@ -2334,7 +2386,7 @@ export default class Record extends Vue {
   }
 
   private getCurrPostionByCurrIndex(currIndex: number) {
-    this.currPosition = this.preflopActionOrder[currIndex];
+    this.currPosition = this.preflopActionOrder9Max[currIndex];
   }
 
   private downloadTxt(text: string, fileName: string) {
