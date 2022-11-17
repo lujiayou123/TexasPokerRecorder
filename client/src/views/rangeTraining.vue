@@ -1,33 +1,41 @@
 <template>
-  <div cla;ss="register-contai;ner container">
+  <div class="register-contai;ner container">
     <div class="register-body">
       <div class="logo">线下手牌记录器</div>
       <div class="title">注册账号</div>
       <div class="user-name">
-        <XInput v-model='form.userAccount'
-                text="用户名"
-                @focus="removeValid('userAccount')"
-                :error="errorData.indexOf('userAccount') > -1"></XInput>
+        <XInput
+          v-model="form.userAccount"
+          text="用户名"
+          @focus="removeValid('userAccount')"
+          :error="errorData.indexOf('userAccount') > -1"
+        ></XInput>
       </div>
       <div class="user-name">
-        <XInput v-model='form.nickName'
-                text="昵称"
-                @focus="removeValid('nickName')"
-                :error="errorData.indexOf('nickName') > -1"></XInput>
+        <XInput
+          v-model="form.nickName"
+          text="昵称"
+          @focus="removeValid('nickName')"
+          :error="errorData.indexOf('nickName') > -1"
+        ></XInput>
       </div>
       <div class="password">
-        <XInput v-model='form.password'
-                text="密码"
-                type="password"
-                @focus="removeValid('password')"
-                :error="errorData.indexOf('password') > -1"></XInput>
+        <XInput
+          v-model="form.password"
+          text="密码"
+          type="password"
+          @focus="removeValid('password')"
+          :error="errorData.indexOf('password') > -1"
+        ></XInput>
       </div>
       <div class="confirm">
-        <XInput v-model='form.confirm'
-                text="密码确认"
-                type="password"
-                @focus="removeValid('confirm')"
-                :error="errorData.indexOf('confirm') > -1"></XInput>
+        <XInput
+          v-model="form.confirm"
+          text="密码确认"
+          type="password"
+          @focus="removeValid('confirm')"
+          :error="errorData.indexOf('confirm') > -1"
+        ></XInput>
       </div>
       <div class="register-btn">
         <div class="s-btn btn"><span @click="register">注册</span></div>
@@ -36,84 +44,87 @@
   </div>
 </template>
 <script lang="ts">
-  import { Vue } from 'vue-property-decorator';
-  import service from '../service';
-  import Component from 'vue-class-component';
-  import toast from '../components/Toast.vue';
-  import XInput from '../components/XInput.vue';
-  // import prange from 'prange';
+import { Vue } from "vue-property-decorator";
+import service from "../service";
+import Component from "vue-class-component";
+import toast from "../components/Toast.vue";
+import XInput from "../components/XInput.vue";
+// import prange from 'prange';
 
-  @Component({
-    components: {
-      toast,
-      XInput,
-    },
-  })
-  export default class RangeTraining extends Vue {
-    private form: any = {
-      userAccount: '',
-      nickName: '',
-      password: '',
-      confirm: '',
-    };
-    private errorData: string [] = [];
+@Component({
+  components: {
+    toast,
+    XInput
+  }
+})
+export default class RangeTraining extends Vue {
+  private form: any = {
+    userAccount: "",
+    nickName: "",
+    password: "",
+    confirm: ""
+  };
+  private errorData: string[] = [];
 
-    private valid() {
-      const errorArr: string[] = [];
-      for (const formKey in this.form) {
-        if (this.form[formKey] === '') {
-          errorArr.push(formKey);
-        }
+  private valid() {
+    const errorArr: string[] = [];
+    for (const formKey in this.form) {
+      if (this.form[formKey] === "") {
+        errorArr.push(formKey);
       }
-      // confirm password
-      if (this.form.password !== this.form.confirm) {
-        errorArr.push('confirm');
-        errorArr.push('password');
-      }
-      this.errorData = errorArr;
     }
-
-    private removeValid(validName: string) {
-      this.errorData = this.errorData.join(',').replace(validName, '').split(',');
+    // confirm password
+    if (this.form.password !== this.form.confirm) {
+      errorArr.push("confirm");
+      errorArr.push("password");
     }
+    this.errorData = errorArr;
+  }
 
-    private async register() {
-      try {
-        this.valid();
-        if (this.errorData.join('') === '') {
-          await service.register(this.form);
-          this.$plugin.toast('sign successful');
-          setTimeout(() => {
-            this.$router.replace({ name: 'login' });
-          }, 2000);
-        }
-      } catch (e) {
-        this.$plugin.toast(JSON.stringify(e));
+  private removeValid(validName: string) {
+    this.errorData = this.errorData
+      .join(",")
+      .replace(validName, "")
+      .split(",");
+  }
+
+  private async register() {
+    try {
+      this.valid();
+      if (this.errorData.join("") === "") {
+        await service.register(this.form);
+        this.$plugin.toast("sign successful");
+        setTimeout(() => {
+          this.$router.replace({ name: "login" });
+        }, 2000);
       }
+    } catch (e) {
+      this.$plugin.toast(JSON.stringify(e));
     }
   }
+}
 </script>
 <style lang="less">
-  .register-container {
-    padding: 20px;
-    margin: auto;
+.register-container {
+  padding: 20px;
+  margin: auto;
 
-    .logo {
-      text-align: left;
-      margin-bottom: 10px;
-      font-size: 16px;
-      font-weight: 700;
-    }
-
-    .title {
-      text-align: left;
-      margin-bottom: 5vh;
-    }
-
-    .register-btn {
-      width: 50vw;
-      float: right;
-      margin: auto;
-    }
+  .logo {
+    text-align: left;
+    margin-bottom: 10px;
+    font-size: 16px;
+    font-weight: 700;
   }
+
+  .title {
+    text-align: left;
+    margin-bottom: 5vh;
+  }
+
+  .register-btn {
+    width: 50vw;
+    float: right;
+    margin: auto;
+  }
+}
 </style>
